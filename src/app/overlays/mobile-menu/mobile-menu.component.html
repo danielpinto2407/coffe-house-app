@@ -1,0 +1,52 @@
+<!-- OVERLAY -->
+<div *ngIf="isOpen"
+     class="fixed inset-0 bg-black/50 z-40"
+     (click)="close()">
+</div>
+
+<!-- DRAWER -->
+<div class="fixed top-0 right-0 w-64 h-full bg-primary text-white shadow-xl z-50 p-5
+            transform transition-transform duration-300 flex flex-col"
+     [class.translate-x-full]="!isOpen">
+
+  <!-- BOTÓN PARA CERRAR -->
+  <button class="self-end mb-4 p-2 rounded-full hover:bg-white/20 transition"
+          (click)="close()">
+    <span class="material-icons text-2xl">close</span>
+  </button>
+
+  <h2 class="text-xl font-semibold mb-4">Menú</h2>
+
+  <div class="flex flex-col gap-4">
+
+    <!-- NO autenticado -->
+    <ng-container *ngIf="!isLoggedIn">
+      <button class="w-full bg-secondary text-primary px-4 py-2 rounded-lg font-semibold hover:bg-tertiary transition"
+              (click)="close()">
+        Iniciar sesión
+      </button>
+
+      <button class="w-full bg-accent text-black px-4 py-2 rounded-lg font-semibold hover:bg-accent/80 transition"
+              (click)="close()">
+        Registrarse
+      </button>
+    </ng-container>
+
+    <!-- SÍ autenticado -->
+    <ng-container *ngIf="isLoggedIn">
+      <button class="w-full flex items-center gap-2 bg-secondary text-primary px-4 py-2 rounded-lg hover:bg-tertiary transition"
+              (click)="close()">
+        <span class="material-icons">account_circle</span>
+        Mi cuenta
+      </button>
+
+      <button class="w-full flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-secondary/30 transition"
+              (click)="logout.emit()">
+        <span class="material-icons">logout</span>
+        Cerrar sesión
+      </button>
+    </ng-container>
+
+  </div>
+
+</div>

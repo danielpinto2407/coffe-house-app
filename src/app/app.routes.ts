@@ -4,7 +4,15 @@ export const routes: Routes = [
   {
     path: 'menu',
     loadChildren: () =>
-      import('./features/menu/menu.routes').then(r => r.MENU_ROUTES),
+      import('./features/menu/menu.routes').then(m => m.MENU_ROUTES),
   },
-  { path: '', redirectTo: 'menu', pathMatch: 'full' },
+  {
+    path: '',
+    redirectTo: 'menu',
+    pathMatch: 'full'
+  },
+  {
+    path: '**',
+    redirectTo: 'menu'
+  }
 ];

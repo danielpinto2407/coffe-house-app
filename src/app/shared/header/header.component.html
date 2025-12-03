@@ -1,0 +1,71 @@
+<header class="w-full bg-primary text-white shadow-lg px-4 py-3 flex items-center justify-between">
+
+  <!-- LOGO -->
+  <div class="flex items-center gap-3">
+    <img src="assets/img/logo.png" alt="Coffee House Logo"
+         class="w-20 h-20 sm:w-20 sm:h-20 rounded-full border border-secondary shadow" />
+
+    <h1 class="text-xl font-semibold tracking-wide hidden sm:block">
+      Coffee House
+    </h1>
+  </div>
+
+  <!-- ACCIONES -->
+  <div class="flex items-center gap-3">
+
+    <!-- CARRITO -->
+    <button 
+      class="relative p-2 rounded-full hover:bg-secondary/30 transition"
+      (click)="cart.open()">
+
+      <span class="material-icons text-3xl">shopping_cart</span>
+
+      <span class="absolute -top-1 -right-1 bg-accent text-black text-xs font-bold
+                  w-5 h-5 flex items-center justify-center rounded-full">
+        {{ cartCount || 0 }}
+      </span>
+    </button>
+
+    <!-- BOTONES DESKTOP -->
+    <div class="hidden md:flex items-center gap-2">
+
+      <!-- NO autenticado -->
+      <ng-container *ngIf="!isLoggedIn">
+        <button class="px-4 py-1 rounded-lg bg-secondary text-primary font-semibold hover:bg-tertiary transition">
+          Iniciar sesión
+        </button>
+        <button class="px-4 py-1 rounded-lg bg-accent text-black font-semibold hover:bg-accent/80 transition">
+          Registrarse
+        </button>
+      </ng-container>
+
+      <!-- SÍ autenticado -->
+      <ng-container *ngIf="isLoggedIn">
+        <button class="flex items-center gap-2 bg-secondary text-primary px-3 py-1 rounded-lg font-medium hover:bg-tertiary transition">
+          <span class="material-icons">account_circle</span>
+          Mi cuenta
+        </button>
+        <button class="p-2 rounded-full hover:bg-secondary/30 transition" (click)="logout()">
+          <span class="material-icons text-2xl">logout</span>
+        </button>
+      </ng-container>
+
+    </div>
+
+    <!-- MENÚ HAMBURGUESA SOLO EN MÓVIL -->
+    <button class="p-2 rounded-full hover:bg-secondary/30 transition md:hidden"
+            (click)="isMenuOpen = true">
+      <span class="material-icons text-3xl">menu</span>
+    </button>
+
+  </div>
+
+</header>
+
+<!-- MENÚ MÓVIL (DRAWER) -->
+<app-mobile-menu
+  [isOpen]="isMenuOpen"
+  [isLoggedIn]="isLoggedIn"
+  (closed)="isMenuOpen = false"
+  (logout)="logout()">
+</app-mobile-menu>
