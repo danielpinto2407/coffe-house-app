@@ -35,11 +35,13 @@
 
     <!-- Botones -->
     <div class="flex gap-3">
-      <button
-        class="flex-1 bg-primary text-white py-3 rounded-xl font-semibold
-               hover:bg-primary/90 transition">
-        Agregar al carrito
-      </button>
+   <button
+      class="flex-1 bg-primary text-white py-3 rounded-xl font-semibold
+            hover:bg-primary/90 transition"
+      (click)="addFromModal(product)"
+    >
+      Agregar al carrito
+    </button>
       <button 
         class="px-5 py-3 bg-gray-200 rounded-xl font-medium hover:bg-gray-300 transition"
         (click)="modal.close()">
