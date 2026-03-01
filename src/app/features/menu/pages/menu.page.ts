@@ -1,9 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { CATEGORIES, SUBCATEGORIES, PRODUCTS } from '../data/menu.mock';
+import { FormsModule } from '@angular/forms';
+import { debounceTime, Subject } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ProductCardComponent } from '../../../shared/product-card/product-card.component';
 import { SearchBarComponent } from '../../../shared/components/search-bar/search-bar.component';
-import { FormsModule } from '@angular/forms';
+import { MenuApiService } from '../services/menu-api.service';
+import { MenuStructure } from '../models/menu-structure.model';
 
 @Component({
   selector: 'app-menu',
@@ -12,63 +15,84 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './menu.page.html',
 })
 export class MenuPage implements OnInit {
+  private readonly menuApi = inject(MenuApiService);
+  private readonly destroyRef = inject(DestroyRef);
 
-  fullMenu: any[] = []; // Menú completo (sin filtrar)
-  menu: any[] = [];     // Menú actual filtrado
-  searchTerm = '';
+  // ✅ SIGNALS: Estado reactivo moderno
+  fullMenu = signal<MenuStructure[]>([]);
+  searchTerm = signal('');
+  isLoading = signal(true);
+
+  // ✅ COMPUTED: Menú filtrado calculado reactivamente
+  menu = computed(() => {
+    const term = this.searchTerm();
+    if (!term.trim()) {
+      return this.fullMenu();
+    }
+    return this.filterMenu(this.fullMenu(), term);
+  });
+
+  // ✅ Debounce para búsqueda (evita filtros excesivos)
+  private readonly searchSubject = new Subject<string>();
+
+  constructor() {
+    // ✅ Desuscripción automática cuando el componente se destruye
+    this.searchSubject
+      .pipe(
+        debounceTime(300), // Espera 300ms después de que el usuario deje de escribir
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((term: string) => {
+        this.searchTerm.set(term);
+      });
+  }
 
   ngOnInit(): void {
-    this.fullMenu = this.buildMenuStructure();
-    this.menu = this.fullMenu;
+    this.isLoading.set(true);
+    this.menuApi.getFullMenu()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((menu: MenuStructure[]) => {
+        this.fullMenu.set(menu);
+        this.isLoading.set(false);
+      });
   }
 
-  //-------------------------------------
-  // Construye el menú original completo
-  //-------------------------------------
-  buildMenuStructure() {
-    return CATEGORIES.map(cat => ({
-      ...cat,
-      subcategories: SUBCATEGORIES
-        .filter(sub => sub.categoryId === cat.id)
-        .sort((a, b) => a.order - b.order)
-        .map(sub => ({
-          ...sub,
-          products: PRODUCTS
-            .filter(p => p.subcategoryId === sub.id)
-            .sort((a, b) => a.order - b.order)
-        })),
-    }));
+  /**
+   * ✅ Listener para eventos de búsqueda del SearchBar
+   * Usa Subject + debounce para no filtrar a cada keystroke
+   */
+  onSearch(term: string): void {
+    this.searchSubject.next(term);
   }
 
-  //-------------------------------------
-  // Filtro desde el componente SearchBar
-  //-------------------------------------
-  onSearch(term: string) {
-    const search = term.toLowerCase().trim();
-    this.searchTerm = search;
+  /**
+   * ✅ Filtrado profundo: mantiene estructura jerárquica
+   * Solo retorna categorías y subcategorías que tienen productos que coinciden
+   */
+  private filterMenu(menu: MenuStructure[], searchTerm: string): MenuStructure[] {
+    const term = searchTerm.toLowerCase().trim();
 
-    // Si está vacío → restaurar menú completo
-    if (!search) {
-      this.menu = this.fullMenu;
-      return;
-    }
+    return menu
+      .map(category => ({
+        ...category,
+        subcategories: category.subcategories
+          .map(subcategory => ({
+            ...subcategory,
+            products: subcategory.products.filter(product =>
+              this.productMatches(product, term)
+            )
+          }))
+          .filter(subcategory => subcategory.products.length > 0)
+      }))
+      .filter(category => category.subcategories.length > 0);
+  }
 
-    // Filtrado profundo
-    this.menu = this.fullMenu
-      .map(cat => {
-        const subcategories = cat.subcategories
-          .map((sub: { products: any[]; }) => {
-            const products = sub.products.filter(p => {
-              const name = p.name?.toLowerCase() || '';
-              const desc = p.description?.toLowerCase() || '';
-              return name.includes(search) || desc.includes(search);
-            });
-            return { ...sub, products };
-          })
-          .filter((sub: { products: string | any[]; }) => sub.products.length > 0);
-
-        return { ...cat, subcategories };
-      })
-      .filter(cat => cat.subcategories.length > 0);
+  /**
+   * Helper: valida si un producto coincide con el término de búsqueda
+   */
+  private productMatches(product: any, term: string): boolean {
+    const name = product.name?.toLowerCase() || '';
+    const desc = product.description?.toLowerCase() || '';
+    return name.includes(term) || desc.includes(term);
   }
 }
