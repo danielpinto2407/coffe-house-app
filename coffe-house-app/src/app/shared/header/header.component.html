@@ -1,43 +1,46 @@
-<header class="w-full header-bar shadow-lg px-4 py-3 flex items-center justify-between">
+<header class="w-full header-bar shadow-md px-3 sm:px-6 py-3 flex items-center justify-between gap-4">
 
-  <!-- LOGO -->
-  <div class="flex items-center gap-3 cursor-pointer hover:opacity-80 transition">
-    <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-secondary flex items-center justify-center overflow-hidden shadow-md">
+  <!-- 🎯 LOGO + MARCA (Navegación primaria) -->
+  <div class="flex items-center gap-3 flex-shrink-0">
+    <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-secondary flex items-center justify-center overflow-hidden shadow-md hover:shadow-lg transition-shadow">
       <img src="assets/img/logo.png" 
-           alt="Coffee House - Logo del sitio"
+           alt="Coffee House - Logo"
            loading="lazy"
            class="w-full h-full object-cover" 
-           [title]="'Coffee House'"/>
+           role="img"/>
     </div>
 
-    <h1 class="text-2xl font-bold tracking-wider hidden sm:block text-secondary" 
+    <h1 class="text-lg sm:text-2xl font-bold tracking-wider hidden sm:block text-secondary" 
         style="font-family: 'Georgia', serif;">
       Coffee House
     </h1>
   </div>
 
-  <!-- ACCIONES -->
-  <div class="flex items-center gap-3">
+  <!-- 🔧 ESPACIADOR (empuja las acciones a la derecha) -->
+  <div class="flex-1"></div>
 
-    <!-- SELECTOR DE TEMAS -->
+  <!-- 🎮 ACCIONES (agrupadas por propósito) -->
+  <div class="flex items-center gap-2 sm:gap-3">
+
+    <!-- 1️⃣ SELECTOR DE TEMAS (Configuración) -->
     <div class="relative">
       <button 
         id="theme-btn"
-        class="p-2 rounded-full hover:bg-secondary/30 transition" 
+        class="p-2 rounded-lg hover:bg-secondary/20 transition-colors duration-200 text-secondary" 
         (click)="toggleThemeSelector()"
         aria-haspopup="menu"
         [attr.aria-expanded]="isThemeSelectorOpen()"
-        aria-label="Selector de temas"
-        title="Cambiar tema">
-        <span class="material-icons text-secondary text-2xl" aria-hidden="true">palette</span>
+        aria-label="Cambiar tema de color"
+        title="Temas">
+        <span class="material-icons text-2xl" aria-hidden="true">palette</span>
       </button>
 
-      <!-- DROPDOWN DE TEMAS -->
+      <!-- Dropdown: Temas -->
       <div *ngIf="isThemeSelectorOpen()" 
            role="menu"
            aria-labelledby="theme-btn"
-           class="absolute top-full right-0 mt-2 bg-surface border border-border rounded-lg shadow-xl p-3 w-48 z-50">
-        <p class="text-sm font-semibold mb-2 text-text">Seleccionar tema:</p>
+           class="absolute top-full right-0 mt-2 bg-surface border border-border rounded-xl shadow-2xl p-3 w-48 z-50 animate-in fade-in slide-in-from-top-2">
+        <p class="text-xs font-bold uppercase tracking-wide mb-3 text-text-secondary px-1">Tema</p>
         <button 
           *ngFor="let theme of availableThemes()" 
           type="button"
@@ -45,63 +48,112 @@
           [attr.aria-selected]="currentThemeId() === theme.id"
           (click)="setTheme(theme.id)"
           [ngClass]="{
-            'bg-primary text-white font-bold': currentThemeId() === theme.id,
-            'text-text bg-background-light': currentThemeId() !== theme.id
+            'bg-primary text-tertiary font-semibold shadow-md': currentThemeId() === theme.id,
+            'text-text bg-background-light hover:bg-hover': currentThemeId() !== theme.id
           }"
-          class="w-full text-left px-3 py-2 rounded-lg mb-1 transition duration-200 hover:bg-hover">
+          class="w-full text-left px-3 py-2.5 rounded-lg mb-2 last:mb-0 transition-all duration-150 flex items-center gap-2">
+          <span class="material-icons text-base" aria-hidden="true">{{ theme.id === 'classic' ? 'light_mode' : 'dark_mode' }}</span>
           {{ theme.name }}
         </button>
       </div>
     </div>
 
-    <!-- CARRITO (solo visble cuando hay sesión activa) -->
+    <!-- 2️⃣ CARRITO (solo si está autenticado) -->
     <button 
       *ngIf="auth.isLoggedIn()"
       type="button"
-      class="relative p-2 rounded-full hover:bg-secondary/30 transition"
+      class="relative p-2 rounded-lg hover:bg-secondary/20 transition-colors duration-200 text-secondary"
       (click)="cart.open()"
-      aria-label="Carrito de compras">
-
-      <span class="material-icons text-secondary text-3xl" aria-hidden="true">shopping_cart</span>
-
-      <span class="absolute -top-1 -right-1 bg-accent text-white text-xs font-bold
-                  w-5 h-5 flex items-center justify-center rounded-full"
+      aria-label="Abrir carrito de compras">
+      <span class="material-icons text-2xl" aria-hidden="true">shopping_cart</span>
+      
+      <!-- Badge: Contador de artículos -->
+      <span class="absolute -top-0.5 -right-0.5 bg-accent text-white text-xs font-bold
+                  w-5 h-5 flex items-center justify-center rounded-full shadow-md"
+            *ngIf="cartCount() > 0"
             [attr.aria-label]="'Artículos en el carrito: ' + (cartCount() || 0)">
-        {{ cartCount() || 0 }}
+        {{ cartCount() }}
       </span>
     </button>
 
-    <!-- BOTONES DESKTOP -->
-    <div class="hidden md:flex items-center gap-2">
+    <!-- ═══════════════════════════════════════ -->
+    <!-- SEPARADOR VISUAL EN DESKTOP -->
+    <!-- ═══════════════════════════════════════ -->
+    <div class="hidden md:block w-px h-6 bg-border/30"></div>
 
-      <!-- SÍ autenticado -->
+    <!-- 3️⃣ NAVEGACIÓN DESKTOP (Admin + Perfil/Logout) -->
+    <div class="hidden md:flex items-center gap-1">
+
+      <!-- 3a. BOTÓN ADMIN (solo si es admin) -->
+      <a *ngIf="auth.isLoggedIn() && auth.isAdmin()" 
+         [routerLink]="['/admin']"
+         class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-secondary font-medium 
+                hover:bg-secondary/15 transition-colors duration-200"
+         aria-label="Ir al panel de administración">
+        <span class="material-icons text-xl" aria-hidden="true">admin_panel_settings</span>
+        <span class="hidden lg:inline text-sm">Admin</span>
+      </a>
+
+      <!-- 3b. MENÚ USUARIO (Perfil + Logout) -->
       <ng-container *ngIf="auth.isLoggedIn()">
-        <a *ngIf="auth.isAdmin()" [routerLink]="['/admin']"
-           class="flex items-center gap-1 px-3 py-1 rounded-lg text-secondary font-medium hover:bg-secondary/20 transition duration-200">
-          <span class="material-icons text-base" aria-hidden="true">admin_panel_settings</span>
-          Admin
-        </a>
-        <button type="button" class="flex items-center gap-2 bg-secondary text-primary px-3 py-1 rounded-lg font-medium hover:bg-accent hover:shadow-lg transition duration-200">
-          <span class="material-icons text-white" aria-hidden="true">account_circle</span>
-          {{ auth.currentUser()?.full_name ?? 'Mi cuenta' }}
-        </button>
-        <button type="button" class="p-2 rounded-full hover:bg-white/20 hover:scale-110 transition duration-200" 
-                (click)="logout()"
-                aria-label="Cerrar sesión">
-          <span class="material-icons text-secondary text-2xl" aria-hidden="true">logout</span>
-        </button>
-      </ng-container>
+        <div class="relative">
+          <button type="button" 
+                  class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary/10 text-secondary 
+                         font-medium hover:bg-secondary/20 transition-colors duration-200 group"
+                  (click)="toggleUserMenu()"
+                  [attr.aria-expanded]="isUserMenuOpen()"
+                  aria-haspopup="menu"
+                  aria-label="Menú de usuario">
+            <span class="material-icons text-xl" aria-hidden="true">account_circle</span>
+            <span class="max-w-[120px] truncate text-sm">
+              {{ auth.currentUser()?.full_name ?? 'Mi cuenta' }}
+            </span>
+            <span class="material-icons text-lg transition-transform duration-200" 
+                  [class.rotate-180]="isUserMenuOpen()"
+                  aria-hidden="true">
+              expand_more
+            </span>
+          </button>
 
+          <!-- Dropdown: Usuario -->
+          <div *ngIf="isUserMenuOpen()" 
+               role="menu"
+               class="absolute top-full right-0 mt-2 bg-surface border border-border rounded-xl shadow-2xl p-2 w-48 z-50 animate-in fade-in slide-in-from-top-2">
+            
+            <!-- Info del usuario -->
+            <div class="px-3 py-2 border-b border-border mb-2">
+              <p class="text-xs text-text-secondary font-medium">CUENTA</p>
+              <p class="text-sm font-semibold text-text mt-1 truncate">
+                {{ auth.currentUser()?.email }}
+              </p>
+              <p class="text-xs text-text-secondary mt-1">
+                {{ auth.currentUser()?.role === 'admin' ? '👨‍💼 Administrador' : '👤 Cliente' }}
+              </p>
+            </div>
+
+            <!-- Acción: Logout -->
+            <button type="button" 
+                    role="menuitem"
+                    class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-error hover:bg-error/10
+                           transition-colors duration-200 font-medium text-sm"
+                    (click)="logout()"
+                    aria-label="Cerrar sesión">
+              <span class="material-icons text-xl" aria-hidden="true">logout</span>
+              Cerrar sesión
+            </button>
+          </div>
+        </div>
+      </ng-container>
     </div>
 
-    <!-- MENÚ HAMBURGUESA SOLO EN MÓVIL -->
+    <!-- 4️⃣ MENÚ HAMBURGUESA MÓVIL -->
     <button type="button" 
-            class="p-2 rounded-full hover:bg-secondary/30 transition md:hidden"
+            class="p-2 rounded-lg hover:bg-secondary/20 transition-colors duration-200 md:hidden text-secondary"
             (click)="openMenu()"
-            aria-label="Abrir menú de navegación">
-      <span class="material-icons text-secondary text-3xl" aria-hidden="true">menu</span>
+            aria-label="Abrir menú"
+            aria-haspopup="menu">
+      <span class="material-icons text-2xl" aria-hidden="true">menu</span>
     </button>
-
   </div>
 
 </header>

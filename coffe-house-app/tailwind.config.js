@@ -13,6 +13,7 @@ module.exports = {
         "text-secondary": "var(--color-text-secondary)",
         background: "var(--color-background)",
         "background-light": "var(--color-background-light)",
+        surface: "var(--color-surface)",
         border: "var(--color-border)",
         success: "var(--color-success)",
         warning: "var(--color-warning)",

@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { createClient, SupabaseClient, AuthError } from '@supabase/supabase-js';
 import { environment } from '../../../environments/environment';
 import { UserProfile, UserRole } from '../models/user.model';
+import { CartService } from './cart-service';
 
 @Injectable({
   providedIn: 'root',
@@ -11,6 +12,7 @@ import { UserProfile, UserRole } from '../models/user.model';
 export class AuthService {
   private readonly router = inject(Router);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly cart = inject(CartService);
   private readonly supabase: SupabaseClient;
 
   private readonly _currentUser = signal<UserProfile | null>(null);
@@ -56,8 +58,15 @@ export class AuthService {
   }
 
   async signIn(email: string, password: string): Promise<void> {
-    const { error } = await this.supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await this.supabase.auth.signInWithPassword({ email, password });
     if (error) throw this.mapError(error);
+    
+    // Wait for profile to load before returning
+    if (data.session?.user) {
+      await this.loadProfile(data.session.user.id);
+      // Clear cart when user logs in
+      this.cart.clear();
+    }
   }
 
   async signUp(email: string, password: string, fullName: string, phone: string): Promise<void> {

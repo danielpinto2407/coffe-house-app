@@ -2,8 +2,9 @@
 
 <!-- ✅ Botones de acciones del menú -->
 <div class="p-4 flex justify-end gap-3">
-  <!-- Botón: Generar Menú (genera PDF y sube a Supabase) -->
+  <!-- Botón: Generar Menú (solo admin) - genera PDF y sube a Supabase -->
   <button
+    *ngIf="isAdmin()"
     type="button"
     (click)="onGenerateMenuPdf()"
     [disabled]="isGeneratingPdf()"

@@ -9,6 +9,7 @@ import { QrModalComponent } from '../../../overlays/qr-modal/qr-modal.component'
 import { MenuApiService } from '../services/menu-api.service';
 import { MenuPdfService } from '../../../core/services/menu-pdf.service';
 import { MenuPdfStateService } from '../../../core/services/menu-pdf-state.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { MenuStructure } from '../models/menu-structure.model';
 
 @Component({
@@ -23,10 +24,14 @@ export class MenuPage implements OnInit {
   private readonly menuPdf = inject(MenuPdfService);
   protected readonly menuPdfState = inject(MenuPdfStateService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly auth = inject(AuthService);
 
   // ✅ SIGNALS: Estado reactivo moderno
   protected readonly fullMenu = signal<MenuStructure[]>([]);
   protected readonly isLoading = signal(true);
+
+  // ✅ Auth: Verificar si es admin
+  protected readonly isAdmin = computed(() => this.auth.isAdmin());
 
   // ✅ Estado del PDF
   protected readonly isGeneratingPdf = computed(() => this.menuPdf.isGenerating());

@@ -22,6 +22,7 @@ export class HeaderComponent {
   // ✅ Estado UI como signals
   protected readonly isMenuOpen = signal(false);
   protected readonly isThemeSelectorOpen = signal(false);
+  protected readonly isUserMenuOpen = signal(false);
 
   // ✅ Estado derivado
   protected readonly availableThemes = computed(() => this.themeService.getAllThemes());
@@ -36,6 +37,12 @@ export class HeaderComponent {
 
   toggleThemeSelector(): void {
     this.isThemeSelectorOpen.update(value => !value);
+    this.isUserMenuOpen.set(false); // Cerrar menú usuario
+  }
+
+  toggleUserMenu(): void {
+    this.isUserMenuOpen.update(value => !value);
+    this.isThemeSelectorOpen.set(false); // Cerrar selector temas
   }
 
   openMenu(): void {
@@ -47,15 +54,20 @@ export class HeaderComponent {
   }
 
   logout(): void {
-    this.auth.signOut().finally(() => this.closeMenu());
+    this.auth.signOut().finally(() => {
+      this.closeMenu();
+      this.isUserMenuOpen.set(false);
+    });
   }
 
-  // ✅ Cierra el menú móvil cuando la pantalla se agranda
+  // ✅ Cierra los menús cuando la pantalla se agranda
   @HostListener('window:resize', ['$event'])
   onResize(event: Event): void {
     const target = event.target as Window;
-    if (target.innerWidth >= 768 && this.isMenuOpen()) {
+    if (target.innerWidth >= 768) {
       this.isMenuOpen.set(false);
+      this.isThemeSelectorOpen.set(false);
+      this.isUserMenuOpen.set(false);
     }
   }
 }
