@@ -99,14 +99,13 @@ import { CommonModule } from '@angular/common';
 
           <!-- Botones -->
           <div class="flex gap-3">
-            <a *ngIf="pdfUrl"
-               [href]="pdfUrl"
-               target="_blank"
-               rel="noopener noreferrer"
-               class="flex-1 bg-primary text-white px-4 py-2 rounded-lg font-medium hover:bg-accent transition text-center"
-               title="Abre el PDF en una nueva pestaña">
+            <button *ngIf="pdfUrl"
+                    type="button"
+                    (click)="downloadPdf()"
+                    class="flex-1 bg-primary text-white px-4 py-2 rounded-lg font-medium hover:bg-accent transition text-center"
+                    title="Descarga el PDF a tu computadora">
               📥 Descargar PDF
-            </a>
+            </button>
           </div>
         </div>
 
@@ -166,5 +165,45 @@ export class QrModalComponent {
   truncateUrl(url: string | null): string {
     if (!url) return '';
     return url.length > 50 ? url.slice(0, 50) + '...' : url;
+  }
+
+  /**
+   * Descarga el PDF desde Supabase como archivo
+   * ✅ Descarga real, no abre en navegador
+   */
+  async downloadPdf(): Promise<void> {
+    if (!this.pdfUrl) {
+      console.warn('⚠️ No hay URL del PDF para descargar');
+      return;
+    }
+
+    try {
+      console.log('📥 Iniciando descarga del PDF...');
+      const response = await fetch(this.pdfUrl);
+      
+      if (!response.ok) {
+        throw new Error(`Error al descargar: ${response.statusText}`);
+      }
+
+      const blob = await response.blob();
+      
+      // ✅ Crear elemento <a> temporal para descargar
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'menu-coffee-house.pdf';
+      
+      // ✅ Descargar
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // ✅ Limpiar URL temporal
+      URL.revokeObjectURL(link.href);
+      
+      console.log('✅ PDF descargado exitosamente');
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
+      console.error('❌ Error descargando PDF:', errorMsg);
+    }
   }
 }
