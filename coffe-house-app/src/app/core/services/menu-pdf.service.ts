@@ -1,14 +1,23 @@
 ﻿import { Injectable, signal, inject } from '@angular/core';
-import pdfMake from 'pdfmake/build/pdfmake';
 import type { Content } from 'pdfmake/interfaces';
-import pdfFonts from 'pdfmake/build/vfs_fonts';
 import { MenuStructure } from '../../features/menu/models/menu-structure.model';
 import { Product } from '../../features/menu/models/product.model';
 import { ThemeService } from './theme.service';
 import { ThemeConfig } from '../themes/theme.config';
 
-if (pdfFonts) {
-  pdfMake.addVirtualFileSystem(pdfFonts);
+// Lazy load pdfMake only when needed
+let pdfMakeInstance: any = null;
+let isPdfMakeInitialized = false;
+
+async function getPdfMake(): Promise<any> {
+  if (!isPdfMakeInitialized && !pdfMakeInstance) {
+    const pdfMake = (await import('pdfmake/build/pdfmake')).default;
+    const pdfFonts = (await import('pdfmake/build/vfs_fonts')).default;
+    pdfMake.addVirtualFileSystem(pdfFonts);
+    pdfMakeInstance = pdfMake;
+    isPdfMakeInitialized = true;
+  }
+  return pdfMakeInstance;
 }
 
 interface PdfColors extends Record<string, string> {
@@ -142,6 +151,7 @@ export class MenuPdfService {
       }
 
       const docDefinition = this.buildPdfDefinition(menuData, logoBase64, bgImageBase64);
+      const pdfMake = await getPdfMake();
       const pdf = pdfMake.createPdf(docDefinition);
 
       return await this.exportPdf(pdf, fileName, format);
@@ -167,7 +177,7 @@ export class MenuPdfService {
   }
 
   private async exportPdf(
-    pdf: ReturnType<typeof pdfMake.createPdf>,
+    pdf: any,
     fileName: string,
     format: PdfExportFormat
   ): Promise<Blob | string | void> {
