@@ -1,0 +1,4 @@
+0000000000000000000000000000000000000000 52d533878d7a64cf696fb3a7e55c17773582e79d Daniel <wdpinto@utp.edu.co> 1764781260 -0500	branch: Created from HEAD
+52d533878d7a64cf696fb3a7e55c17773582e79d dc42de913cce643871c087021c4a8e88a4589f86 Daniel <wdpinto@utp.edu.co> 1764806935 -0500	commit: (feature): Agregado el buscador de productos
+dc42de913cce643871c087021c4a8e88a4589f86 b06d10aa1bb4ee5f61e52f53db810a7b40e66b21 Daniel <wdpinto@bancolombia.com.co> 1772393745 -0500	commit: feat: refactorizados varias de las funcionalidades con el copilot
+b06d10aa1bb4ee5f61e52f53db810a7b40e66b21 9afd9f30085168d990c413d33f5033ef7356083b Daniel <wdpinto@bancolombia.com.co> 1774745408 -0500	commit: feat(pdf): optimize menu pdf generation with pdfmake v0.3.x
