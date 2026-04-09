@@ -1,0 +1,53 @@
+<!-- Backdrop -->
+<div 
+  *ngIf="modal.product$ | async as product"
+  class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+  (click)="modal.close()">
+</div>
+
+<!-- Modal -->
+<div 
+  *ngIf="modal.product$ | async as product"
+  class="fixed inset-0 flex items-center justify-center z-50 p-4"
+>
+  <div 
+    class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-5
+           transform transition-all duration-300"
+    (click)="$event.stopPropagation()">
+
+    <!-- Imagen -->
+    <img 
+      [src]="product.image" 
+      [alt]="product.name"
+      class="w-full h-64 object-cover rounded-xl mb-4 shadow-md"
+    >
+
+    <!-- Información -->
+    <h2 class="text-2xl font-bold mb-2">{{ product.name }}</h2>
+
+    <p class="text-gray-600 text-sm mb-3">
+      {{ product.description }}
+    </p>
+
+    <p class="text-lg font-semibold mb-5">
+      $ {{ product.price | number }}
+    </p>
+
+    <!-- Botones -->
+    <div class="flex gap-3">
+   <button
+      class="flex-1 bg-primary text-white py-3 rounded-xl font-semibold
+            hover:bg-primary/90 transition"
+      (click)="addFromModal(product)"
+    >
+      Agregar al carrito
+    </button>
+      <button 
+        class="px-5 py-3 bg-gray-200 rounded-xl font-medium hover:bg-gray-300 transition"
+        (click)="modal.close()">
+        Cerrar
+      </button>
+    </div>
+
+  </div>
+</div>

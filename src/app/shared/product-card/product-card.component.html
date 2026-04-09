@@ -1,0 +1,34 @@
+<div
+  (click)="openProduct()"
+  class="bg-white rounded-2xl shadow-md hover:shadow-xl transition 
+         p-4 w-full flex flex-col items-center text-center cursor-pointer
+         transform hover:-translate-y-1 hover:scale-105 duration-300">
+
+  <!-- Imagen -->
+  <div class="w-32 h-32 rounded-xl overflow-hidden shadow-md mb-3">
+    <img 
+      [src]="product.image"
+      [alt]="product.name"
+      class="w-full h-full object-cover"
+    >
+  </div>
+
+  <!-- Título -->
+  <h3 class="text-lg font-semibold text-primary tracking-wide">
+    {{ product.name }}
+  </h3>
+
+  <!-- Precio -->
+  <p class="text-xl font-bold text-secondary mt-1">
+    {{ product.price | currency:'COP':'symbol' }}
+  </p>
+
+  <!-- Botón -->
+  <button
+    (click)="addToCart($event)"
+    class="mt-4 w-full bg-primary text-white font-medium px-4 py-2 rounded-xl 
+           hover:bg-secondary transition">
+    Agregar al carrito
+  </button>
+
+</div>

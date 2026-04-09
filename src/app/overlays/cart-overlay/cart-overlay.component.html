@@ -1,0 +1,87 @@
+<!-- BACKDROP -->
+<div 
+  *ngIf="cart.open$ | async"
+  class="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+  (click)="cart.close()">
+</div>
+
+<!-- OVERLAY PANEL -->
+<div 
+  *ngIf="cart.open$ | async"
+  class="fixed right-0 top-0 h-full w-80 bg-white shadow-2xl z-50 p-5
+         flex flex-col transition-transform transform"
+  [class.translate-x-full]="!(cart.open$ | async)"
+  [class.translate-x-0]="cart.open$ | async">
+
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-5">
+    <h2 class="text-xl font-bold text-primary">Tu carrito</h2>
+    <button 
+      class="text-gray-500 hover:text-black"
+      (click)="cart.close()">
+      ✕
+    </button>
+  </div>
+
+  <!-- Items -->
+  <div class="overflow-y-auto flex-1 pr-2 space-y-4">
+
+    <div *ngFor="let item of (cart.items$ | async)" class="flex gap-3">
+
+      <!-- Imagen -->
+      <img 
+        [src]="item.product.image" 
+        class="w-16 h-16 rounded-lg object-cover shadow">
+
+      <!-- Info -->
+      <div class="flex-1">
+        <p class="font-semibold">{{ item.product.name }}</p>
+        <p class="text-sm text-gray-500">$ {{ item.product.price | number }}</p>
+
+        <!-- Controles -->
+        <div class="flex items-center gap-2 mt-2">
+
+          <button 
+            class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
+            (click)="cart.decrease(item.product.id)">
+            -
+          </button>
+
+          <span class="font-semibold">{{ item.qty }}</span>
+
+          <button 
+            class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
+            (click)="cart.increase(item.product.id)">
+            +
+          </button>
+
+        </div>
+      </div>
+
+      <!-- Eliminar -->
+      <button 
+        class="text-red-500 hover:text-red-700 font-bold"
+        (click)="cart.removeProduct(item.product.id)">
+        ✕
+      </button>
+
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="border-t pt-4 mt-4">
+
+    <div class="flex justify-between font-semibold mb-3">
+      <span>Subtotal</span>
+      <span>$ {{ subtotal | number }}</span>
+    </div>
+
+    <button class="w-full bg-primary text-white py-3 rounded-xl font-semibold 
+                   hover:bg-primary/90 transition">
+      Proceder al pago
+    </button>
+
+  </div>
+
+</div>
