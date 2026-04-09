@@ -118,8 +118,15 @@ export class MenuPage implements OnInit {
   /**
    * ✅ Genera el PDF del menú y lo sube a Supabase
    * Orquesta: generación de PDF → carga a Supabase → generación de QR
+   * Solo permitido para usuarios con rol admin
    */
   async onGenerateMenuPdf(): Promise<void> {
+    // ✅ Validar que solo admin pueda hacerlo
+    if (!this.auth.isAdmin()) {
+      console.warn('⚠️ Solo administradores pueden generar el menú');
+      return;
+    }
+
     try {
       const menuData = this.fullMenu();
       
@@ -147,8 +154,9 @@ export class MenuPage implements OnInit {
   }
 
   /**
-   * ✅ Abre el modal con el QR
-   * Valida que exista PDF, genera QR si es necesario
+   * ✅ Abre el modal con el QR (cacheado)
+   * Si ya existe QR, lo muestra inmediatamente sin regenerar
+   * Solo regenera si falta o hay error
    */
   async onViewMenuQr(): Promise<void> {
     if (!this.menuPdfState.hasPdf()) {
@@ -156,20 +164,23 @@ export class MenuPage implements OnInit {
       return;
     }
 
-    // Si no hay QR, regenerarlo (puede haberse limpiado)
-    if (!this.menuPdfState.hasQr()) {
-      try {
-        console.log('🔄 Regenerando código QR...');
-        await this.menuPdfState.generateMenuQr();
-      } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
-        console.error('❌ Error regenerando QR:', errorMsg);
-        return;
-      }
+    // ✅ Si ya existe QR válido, abrir modal sin regenerar (CACHÉ)
+    if (this.menuPdfState.hasQr()) {
+      console.log('✅ Usando QR en caché (no regenerando)');
+      this.isQrModalOpen.set(true);
+      return;
     }
 
-    console.log('🔓 Abriendo modal QR');
-    this.isQrModalOpen.set(true);
+    // ✅ QR no existe, generarlo
+    try {
+      console.log('🔄 Generando código QR por primera vez...');
+      await this.menuPdfState.generateMenuQr();
+      this.isQrModalOpen.set(true);
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
+      console.error('❌ Error regenerando QR:', errorMsg);
+      return;
+    }
   }
 
   /**

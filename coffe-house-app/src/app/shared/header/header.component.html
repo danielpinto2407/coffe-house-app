@@ -58,9 +58,9 @@
       </div>
     </div>
 
-    <!-- 2️⃣ CARRITO (solo si está autenticado) -->
+    <!-- 2️⃣ CARRITO (solo si está autenticado y auth está listo) -->
     <button 
-      *ngIf="auth.isLoggedIn()"
+      *ngIf="isAuthReady() && auth.isLoggedIn()"
       type="button"
       class="relative p-2 rounded-lg hover:bg-secondary/20 transition-colors duration-200 text-secondary"
       (click)="cart.open()"
@@ -84,8 +84,8 @@
     <!-- 3️⃣ NAVEGACIÓN DESKTOP (Admin + Perfil/Logout) -->
     <div class="hidden md:flex items-center gap-1">
 
-      <!-- 3a. BOTÓN ADMIN (solo si es admin) -->
-      <a *ngIf="auth.isLoggedIn() && auth.isAdmin()" 
+      <!-- 3a. BOTÓN ADMIN (solo si es admin y auth está listo) -->
+      <a *ngIf="isAuthReady() && auth.isLoggedIn() && auth.isAdmin()" 
          [routerLink]="['/admin']"
          class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-secondary font-medium 
                 hover:bg-secondary/15 transition-colors duration-200"
@@ -94,8 +94,8 @@
         <span class="hidden lg:inline text-sm">Admin</span>
       </a>
 
-      <!-- 3b. MENÚ USUARIO (Perfil + Logout) -->
-      <ng-container *ngIf="auth.isLoggedIn()">
+      <!-- 3b. MENÚ USUARIO (Perfil + Logout) - solo si está autenticado y auth está listo -->
+      <ng-container *ngIf="isAuthReady() && auth.isLoggedIn()">
         <div class="relative">
           <button type="button" 
                   class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-secondary/10 text-secondary 
@@ -161,8 +161,8 @@
 <!-- MENÚ MÓVIL (DRAWER) -->
 <app-mobile-menu
   [isOpen]="isMenuOpen()"
-  [isLoggedIn]="auth.isLoggedIn()"
-  [isAdmin]="auth.isAdmin()"
+  [isLoggedIn]="isAuthReady() && auth.isLoggedIn()"
+  [isAdmin]="isAuthReady() && auth.isAdmin()"
   (closed)="closeMenu()"
   (logout)="logout()">
 </app-mobile-menu>

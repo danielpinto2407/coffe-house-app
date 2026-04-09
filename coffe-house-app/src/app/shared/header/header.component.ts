@@ -27,6 +27,10 @@ export class HeaderComponent {
   // ✅ Estado derivado
   protected readonly availableThemes = computed(() => this.themeService.getAllThemes());
   protected readonly currentThemeId = computed(() => this.themeService.getThemeId());
+  
+  // ✅ Auth loading state para evitar flicker de elementos autenticados
+  protected readonly isAuthReady = computed(() => !this.auth.loading());
+  
   // ✅ toSignal: reactivo a cambios del carrito via observable, con OnPush
   protected readonly cartCount = toSignal(this.cart.count$, { initialValue: 0 });
 

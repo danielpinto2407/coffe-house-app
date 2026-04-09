@@ -52,12 +52,20 @@ import { CommonModule } from '@angular/common';
         <!-- Contenido -->
         <div class="text-center">
           <!-- QR Code -->
-          <div *ngIf="qrCode" class="mb-6 flex justify-center">
-            <img [src]="qrCode" 
-                 alt="Código QR del menú" 
-                 class="w-64 h-64 border-4 border-primary rounded-lg"
-                 loading="lazy"
-                 decoding="async">
+          <div *ngIf="qrCode" class="mb-6 flex justify-center animate-in fade-in">
+            <div class="relative">
+              <img [src]="qrCode" 
+                   alt="Código QR del menú" 
+                   class="w-64 h-64 border-4 border-primary rounded-lg"
+                   loading="lazy"
+                   decoding="async">
+              <!-- Badge: Usando caché si no está cargando -->
+              <div *ngIf="!isLoading" 
+                   class="absolute -bottom-2 -right-2 bg-success text-white text-xs font-bold 
+                          px-3 py-1 rounded-full shadow-md">
+                ✓ Listo
+              </div>
+            </div>
           </div>
 
           <!-- Loading -->
@@ -70,7 +78,7 @@ import { CommonModule } from '@angular/common';
 
           <!-- Error -->
           <div *ngIf="error" 
-               class="mb-6 p-4 bg-red-100 text-red-700 rounded-lg"
+               class="mb-6 p-4 bg-error/10 text-error rounded-lg"
                role="alert">
             <p class="text-sm font-medium">❌ Error</p>
             <p class="text-sm mt-1">{{ error }}</p>
@@ -102,7 +110,7 @@ import { CommonModule } from '@angular/common';
             </a>
             <button type="button"
                     (click)="close()"
-                    class="flex-1 bg-gray-300 text-text px-4 py-2 rounded-lg font-medium hover:bg-gray-400 transition"
+                    class="flex-1 bg-background-light hover:bg-hover text-text px-4 py-2 rounded-lg font-medium transition"
                     title="Cierra este modal">
               Cerrar
             </button>

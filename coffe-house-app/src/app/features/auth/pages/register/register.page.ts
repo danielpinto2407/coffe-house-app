@@ -3,6 +3,7 @@ import {
   Component,
   inject,
   signal,
+  OnInit,
 } from '@angular/core';
 import {
   AbstractControl,
@@ -27,7 +28,7 @@ function passwordsMatch(control: AbstractControl): ValidationErrors | null {
   templateUrl: './register.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class RegisterPage {
+export class RegisterPage implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
@@ -46,6 +47,13 @@ export class RegisterPage {
   readonly errorMsg = signal<string | null>(null);
   readonly loading = signal(false);
   readonly success = signal(false);
+
+  ngOnInit(): void {
+    // ✅ Si ya está logueado, redirigir automáticamente a /menu
+    if (this.auth.isLoggedIn()) {
+      this.router.navigate(['/menu']);
+    }
+  }
 
   async onSubmit(): Promise<void> {
     if (this.form.invalid || this.loading()) return;
