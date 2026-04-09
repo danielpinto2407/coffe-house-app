@@ -107,12 +107,6 @@ import { CommonModule } from '@angular/common';
                title="Abre el PDF en una nueva pestaña">
               📥 Descargar PDF
             </a>
-            <button type="button"
-                    (click)="close()"
-                    class="flex-1 bg-background-light hover:bg-hover text-text px-4 py-2 rounded-lg font-medium transition"
-                    title="Cierra este modal">
-              Cerrar
-            </button>
           </div>
         </div>
 
