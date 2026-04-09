@@ -91,31 +91,6 @@ export class MenuPage implements OnInit {
   }
 
   /**
-   * ✅ Descarga el menú completo como PDF
-   * Usa el servicio MenuPdfService para generar el documento
-   */
-  async onDownloadMenu(): Promise<void> {
-    try {
-      const menuData = this.fullMenu();
-      
-      if (!menuData?.length) {
-        console.warn('⚠️ No hay menú disponible para descargar');
-        return;
-      }
-
-      console.log('📥 Iniciando descarga del menú...');
-      await this.menuPdf.generateAndDownloadMenuPdf(
-        menuData,
-        'Menu-CoffeeHouse.pdf'
-      );
-      console.log('✅ Menú descargado exitosamente');
-    } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
-      console.error('❌ Error al descargar el menú:', errorMsg);
-    }
-  }
-
-  /**
    * ✅ Genera el PDF del menú y lo sube a Supabase
    * Orquesta: generación de PDF → carga a Supabase → generación de QR
    * Solo permitido para usuarios con rol admin
@@ -154,31 +129,19 @@ export class MenuPage implements OnInit {
   }
 
   /**
-   * ✅ Abre el modal con el QR (cacheado)
-   * Si ya existe QR, lo muestra inmediatamente sin regenerar
-   * Solo regenera si falta o hay error
+   * ✅ Visualiza el menú mostrando el QR del PDF existente en Supabase
+   * Si existe un PDF previo, lo carga y genera el QR
+   * Si no existe, muestra un mensaje indicando que debe generarlo primero
    */
   async onViewMenuQr(): Promise<void> {
-    if (!this.menuPdfState.hasPdf()) {
-      console.warn('⚠️ No hay PDF generado. Genera uno primero.');
-      return;
-    }
-
-    // ✅ Si ya existe QR válido, abrir modal sin regenerar (CACHÉ)
-    if (this.menuPdfState.hasQr()) {
-      console.log('✅ Usando QR en caché (no regenerando)');
-      this.isQrModalOpen.set(true);
-      return;
-    }
-
-    // ✅ QR no existe, generarlo
     try {
-      console.log('🔄 Generando código QR por primera vez...');
-      await this.menuPdfState.generateMenuQr();
+      console.log('⏳ Cargando PDF existente desde Supabase...');
+      await this.menuPdfState.loadExistingPdfAndQr();
       this.isQrModalOpen.set(true);
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
-      console.error('❌ Error regenerando QR:', errorMsg);
+      console.warn('⚠️ No hay menú disponible:', errorMsg);
+      // TODO: Mostrar toast/snackbar informando al usuario
       return;
     }
   }

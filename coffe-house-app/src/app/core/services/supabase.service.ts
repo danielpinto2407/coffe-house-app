@@ -18,6 +18,7 @@ export class SupabaseService {
 
   /**
    * Sube un PDF a Supabase Storage en el bucket 'menu'
+   * ✅ Si es 'menu.pdf', sobrescribe el anterior (upsert)
    * @param fileName - Nombre base del archivo
    * @param pdfBlob - Contenido del PDF como Blob
    * @returns URL pública del archivo subido
@@ -29,17 +30,26 @@ export class SupabaseService {
     }
 
     try {
-      const timestamp = Date.now();
-      const uniqueFileName = `${timestamp}-${fileName}`;
+      // ✅ Si es 'menu.pdf', sobrescribir; si no, adicionar timestamp
+      let finalFileName = fileName;
+      if (fileName !== 'menu.pdf') {
+        const timestamp = Date.now();
+        finalFileName = `${timestamp}-${fileName}`;
+      }
 
       const { data, error } = await this.supabase.storage
         .from(this.bucketName)
-        .upload(uniqueFileName, pdfBlob, {
+        .upload(finalFileName, pdfBlob, {
           cacheControl: '3600',
-          upsert: false
+          upsert: true  // ✅ Sobrescribir si existe
         });
 
       if (error) {
+        console.error('🔴 Supabase Storage Error:', error);
+        // RLS policy error
+        if (error.message?.includes('row-level security')) {
+          throw new Error('Permiso denegado: Revisa las políticas RLS del bucket "menu" en Supabase. El usuario debe tener permisos para subir archivos.');
+        }
         throw new Error(`Error Supabase: ${error.message}`);
       }
 
@@ -47,12 +57,46 @@ export class SupabaseService {
         .from(this.bucketName)
         .getPublicUrl(data.path);
 
-      console.log(`✅ PDF subido exitosamente: ${uniqueFileName}`);
+      console.log(`✅ PDF subido exitosamente: ${finalFileName}`);
       return publicUrlData.publicUrl;
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
       console.error(`❌ Error subiendo PDF: ${errorMsg}`);
       throw new Error(`No se pudo subir el PDF: ${errorMsg}`);
+    }
+  }
+
+  /**
+   * Obtiene la URL del PDF 'menu.pdf' si existe en Supabase
+   * ✅ Verifica que el archivo exista antes de retornar
+   * @throws Error si el archivo no existe
+   */
+  async getPdfUrl(fileName: string = 'menu.pdf'): Promise<string> {
+    if (!fileName?.trim()) {
+      throw new Error('Nombre de archivo inválido');
+    }
+
+    try {
+      // ✅ Verificar que el archivo existe listando el bucket
+      const { data: files, error: listError } = await this.supabase.storage
+        .from(this.bucketName)
+        .list();
+
+      if (listError) {
+        throw new Error(`Error al verificar archivos: ${listError.message}`);
+      }
+
+      const fileExists = (files || []).some(f => f.name === fileName);
+      if (!fileExists) {
+        throw new Error(`Archivo '${fileName}' no existe en Supabase`);
+      }
+
+      // ✅ Retornar URL pública
+      return this.getPublicUrl(fileName);
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
+      console.error(`❌ Error getPdfUrl: ${errorMsg}`);
+      throw new Error(errorMsg);
     }
   }
 

@@ -29,8 +29,7 @@ import { CommonModule } from '@angular/common';
 
     <!-- MODAL -->
     <div *ngIf="isOpen"
-         class="fixed inset-0 z-50 flex items-center justify-center p-4"
-         [@.disabled]="true">
+         class="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div class="bg-surface rounded-lg shadow-2xl p-8 max-w-md w-full"
            (click)="$event.stopPropagation()"
            role="dialog"

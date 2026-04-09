@@ -33,11 +33,9 @@ export class MenuPdfStateService {
   readonly isLoading = computed(() => this._isLoadingPdf() || this._isLoadingQr());
 
   /**
-   * Sube el PDF a Supabase y genera un QR de la URL pública
+   * Sube el PDF a Supabase (sobrescribiendo el anterior) y genera un QR de la URL pública
    * @param pdfBlob - Blob del PDF a subir
    * @throws Error si falla la carga o generación del QR
-   * @example
-   * await this.menuPdfState.uploadPdfAndGenerateQr(pdfBlob);
    */
   async uploadPdfAndGenerateQr(pdfBlob: Blob): Promise<void> {
     if (!pdfBlob?.size) {
@@ -49,10 +47,10 @@ export class MenuPdfStateService {
       this._isLoadingPdf.set(true);
       this._error.set(null);
 
-      const timestamp = new Date().toISOString().split('T')[0];
-      const fileName = `menu-${timestamp}.pdf`;
+      // ✅ Usar nombre fijo (no timestamp) para siempre sobrescribir el mismo archivo
+      const fileName = 'menu.pdf';
 
-      // Subir PDF a Supabase
+      // Subir PDF a Supabase (sobrescribe si existe)
       const publicUrl = await this.supabaseService.uploadPdf(fileName, pdfBlob);
       this._pdfUrl.set(publicUrl);
 
@@ -101,6 +99,36 @@ export class MenuPdfStateService {
       console.error('❌ Error generateMenuQr:', message);
       throw error;
     } finally {
+      this._isLoadingQr.set(false);
+    }
+  }
+
+  /**
+   * Carga el PDF existente desde Supabase sin generar uno nuevo
+   * @throws Error si el PDF no existe o falla la generación del QR
+   */
+  async loadExistingPdfAndQr(): Promise<void> {
+    try {
+      this._isLoadingPdf.set(true);
+      this._error.set(null);
+
+      // ✅ Cargar URL del PDF existente (nombre fijo: menu.pdf)
+      const publicUrl = await this.supabaseService.getPdfUrl('menu.pdf');
+      this._pdfUrl.set(publicUrl);
+
+      // Generar QR con la URL del PDF existente
+      this._isLoadingQr.set(true);
+      const qrDataUrl = await this.qrCodeService.generateQRCode(publicUrl);
+      this._qrCode.set(qrDataUrl);
+
+      console.log('✅ PDF existente cargado y QR generado');
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'No hay menú disponible aún';
+      this._error.set(errorMsg);
+      console.warn('⚠️ Error loadExistingPdfAndQr:', errorMsg);
+      throw error;
+    } finally {
+      this._isLoadingPdf.set(false);
       this._isLoadingQr.set(false);
     }
   }
