@@ -5,6 +5,7 @@ import { adminGuard } from './core/guards/admin.guard';
 export const routes: Routes = [
   {
     path: 'menu',
+    canActivate: [authGuard],
     loadChildren: () =>
       import('./features/menu/menu.routes').then(m => m.MENU_ROUTES),
   },
