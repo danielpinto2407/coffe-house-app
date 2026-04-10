@@ -6,4 +6,5 @@ export interface Product {
   image?: string;
   description?: string;
   order: number;
+  active?: boolean;  // Para ocultar/mostrar productos en el menú
 }

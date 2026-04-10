@@ -1,13 +1,19 @@
-import { Injectable } from '@angular/core';
-import { CATEGORIES, SUBCATEGORIES, PRODUCTS } from '../data/menu.mock';
-import { Observable, of } from 'rxjs';
-import { map, shareReplay } from 'rxjs/operators';
+import { Injectable, inject } from '@angular/core';
+import { Observable, from, of } from 'rxjs';
+import { map, shareReplay, switchMap, catchError } from 'rxjs/operators';
 import { MenuStructure, SearchableProduct } from '../models/menu-structure.model';
+import { CategoryService } from './category.service';
+import { SubcategoryService } from './subcategory.service';
+import { ProductService } from './product.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MenuApiService {
+  private readonly categoryService = inject(CategoryService);
+  private readonly subcategoryService = inject(SubcategoryService);
+  private readonly productService = inject(ProductService);
+
   // ✅ Cache del menú completo: una vez cargado, no se reconstruye
   private fullMenu$: Observable<MenuStructure[]> | null = null;
 
@@ -15,17 +21,17 @@ export class MenuApiService {
   private searchIndex: SearchableProduct[] = [];
 
   /**
-   * ✅ Obtiene el menú completo estructurado con caché
-   * Evita reconstruir el árbol innecesariamente
+   * ✅ Obtiene el menú completo desde Supabase
+   * Evita reconstruir el árbol innecesariamente con caché
    */
   getFullMenu(): Observable<MenuStructure[]> {
-    this.fullMenu$ ??= of(CATEGORIES).pipe(
+    this.fullMenu$ ??= from(this.loadMenuFromSupabase()).pipe(
       map(categories => {
         // Construir índice de búsqueda una sola vez
         if (this.searchIndex.length === 0) {
           this.buildSearchIndex(categories);
         }
-        return this.buildMenuStructure(categories);
+        return categories;
       }),
       shareReplay(1) // ✅ Cache: recalcula solo en la primera suscripción
     );
@@ -33,9 +39,41 @@ export class MenuApiService {
   }
 
   /**
-   * ✅ Búsqueda eficiente en el índice
+   * ✅ Carga todos los datos de Supabase y construye la estructura del menú
+   */
+  private async loadMenuFromSupabase(): Promise<MenuStructure[]> {
+    try {
+      // Cargar datos de Supabase
+      await this.categoryService.loadCategories();
+      await this.subcategoryService.loadSubcategories();
+      await this.productService.loadProducts();
+
+      // Construir la estructura del menú desde datos reales
+      const categories = this.categoryService.categories();
+      
+      return categories
+        .map(category => ({
+          ...category,
+          subcategories: this.subcategoryService
+            .subcategories()
+            .filter(s => s.categoryId === category.id)
+            .map(sub => ({
+              ...sub,
+              products: this.productService
+                .products()
+                .filter(p => p.subcategoryId === sub.id && p.active !== false)
+            }))
+        }))
+        .sort((a, b) => a.order - b.order);
+    } catch (error) {
+      console.error('Error cargando menú desde Supabase:', error);
+      return [];
+    }
+  }
+
+  /**
+   * ✅ Búsqueda eficiente en el índice desde Supabase
    * Retorna categorías y subcategorías que contienen resultados
-   * Centraliza toda la lógica de filtrado
    */
   searchMenu(searchTerm: string): Observable<MenuStructure[]> {
     return this.getFullMenu().pipe(
@@ -67,36 +105,22 @@ export class MenuApiService {
   // ============================================
 
   /**
-   * Construye la estructura jerárquica del menú
-   */
-  private buildMenuStructure(categories: typeof CATEGORIES): MenuStructure[] {
-    return categories
-      .map((category: typeof CATEGORIES[0]) => ({
-        ...category,
-        subcategories: SUBCATEGORIES
-          .filter((s: typeof SUBCATEGORIES[0]) => s.categoryId === category.id)
-          .map((sub: typeof SUBCATEGORIES[0]) => ({
-            ...sub,
-            products: PRODUCTS
-              .filter((p: typeof PRODUCTS[0]) => p.subcategoryId === sub.id)
-          }))
-      }))
-      .sort((a, b) => a.order - b.order);
-  }
-
-  /**
    * Crea un índice plano para búsquedas rápidas
    */
-  private buildSearchIndex(categories: typeof CATEGORIES): void {
-    this.searchIndex = PRODUCTS.map(product => {
-      const sub = SUBCATEGORIES.find(s => s.id === product.subcategoryId);
-      const cat = CATEGORIES.find(c => c.id === sub?.categoryId);
-      return {
-        ...product,
-        categoryName: cat?.name || '',
-        subcategoryName: sub?.name || ''
-      };
-    });
+  private buildSearchIndex(menu: MenuStructure[]): void {
+    this.searchIndex = [];
+    
+    for (const category of menu) {
+      for (const subcategory of category.subcategories) {
+        for (const product of subcategory.products) {
+          this.searchIndex.push({
+            ...product,
+            categoryName: category.name,
+            subcategoryName: subcategory.name
+          });
+        }
+      }
+    }
   }
 
   /**
