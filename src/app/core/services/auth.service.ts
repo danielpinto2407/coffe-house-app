@@ -100,7 +100,7 @@ export class AuthService {
   async signOut(): Promise<void> {
     await this.supabase.auth.signOut();
     this._currentUser.set(null);
-    this.router.navigate(['/auth/login']);
+    this.router.navigate(['/menu']);
   }
 
   getSupabaseClient(): SupabaseClient {
