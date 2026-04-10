@@ -1,9 +1,9 @@
 ﻿import { Injectable, signal, inject } from '@angular/core';
 import type { Content } from 'pdfmake/interfaces';
-import { MenuStructure } from '../../features/menu/models/menu-structure.model';
-import { Product } from '../../features/menu/models/product.model';
-import { ThemeService } from './theme.service';
-import { ThemeConfig } from '../themes/theme.config';
+import { MenuStructure } from '../models/menu-structure.model';
+import { Product } from '../models/product.model';
+import { ThemeService } from '../../../core/services/theme.service';
+import { ThemeConfig } from '../../../core/themes/theme.config';
 
 // Lazy load pdfMake only when needed
 let pdfMakeInstance: any = null;

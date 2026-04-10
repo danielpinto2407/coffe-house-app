@@ -7,8 +7,8 @@ import { ProductCardComponent } from '../../../shared/product-card/product-card.
 import { SearchBarComponent } from '../../../shared/components/search-bar/search-bar.component';
 import { QrModalComponent } from '../../../overlays/qr-modal/qr-modal.component';
 import { MenuApiService } from '../services/menu-api.service';
-import { MenuPdfService } from '../../../core/services/menu-pdf.service';
-import { MenuPdfStateService } from '../../../core/services/menu-pdf-state.service';
+import { MenuPdfService } from '../services/menu-pdf.service';
+import { MenuPdfStateService } from '../services/menu-pdf-state.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { MenuStructure } from '../models/menu-structure.model';
 

@@ -5,6 +5,7 @@
 * Intenta siempre darme codigo optimizado y refactorizado para e
 * Asegurate de que las optimizaciones o refactorizaciones nunca afecten la funcionalidad existente.
 * En cualquier interfaz o html que generes ten en cuenta mis temas del archivo 
+* no crees una terminal por cada ejecución de scripts, si puedes hacerlo en una que no este ocupada usala.
 
 ## Descripción General del Proyecto
 **Coffee House App** es una aplicación de e-commerce Angular 17.0+ para una cafetería con soporte SSR (Server-Side Rendering). Construida con componentes standalone, Tailwind CSS y observables de RxJS para gestión de estado.
@@ -248,7 +249,7 @@ this.themeService.setTheme('classic'); // Ver theme.config.ts para temas disponi
 ## Consejos de Desarrollo
 
 - Ejecutar tests en modo watch: `ng test --watch`
-- Buildear para SSR de producción: `ng build` luego `npm run serve:ssr:coffe-house-app`
+- Buildear para CSR de producción: `ng build` luego `npm run serve:ssr:coffe-house-app`
 - Debuggear en VS Code: Usar extensión Debugger for Chrome con `ng serve`
 - Verificar árbol de componentes: Extensión Angular DevTools Chrome
 - Perfilar rendimiento: Usar Webpack Bundle Analyzer o flags de profiling CLI

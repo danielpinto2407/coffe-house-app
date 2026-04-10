@@ -1,5 +1,5 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
-import { SupabaseService } from './supabase.service';
+import { SupabaseService } from '../../../core/services/supabase.service';
 import { QrCodeService } from './qr-code.service';
 
 /**
