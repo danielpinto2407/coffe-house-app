@@ -133,7 +133,7 @@ export class MenuPdfService {
             this.cachedLogo.set(logoBase64);
           }
         } catch (error) {
-          console.warn('Logo loading failed, continuing without it', error);
+          // Logo loading failed, continue without it
         }
       }
 
@@ -146,7 +146,7 @@ export class MenuPdfService {
             this.cachedBgImage.set(bgImageBase64);
           }
         } catch (error) {
-          console.warn('Background image loading failed, using solid color', error);
+          // Background image loading failed, use solid color
         }
       }
 
@@ -158,7 +158,6 @@ export class MenuPdfService {
     } catch (error) {
       const errorMsg =
         error instanceof Error ? error.message : 'Failed to generate menu PDF';
-      console.error('Error generating PDF:', error);
       this.pdfError.set(errorMsg);
       throw new Error(errorMsg);
     } finally {

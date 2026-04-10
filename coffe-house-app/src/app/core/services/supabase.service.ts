@@ -45,7 +45,6 @@ export class SupabaseService {
         });
 
       if (error) {
-        console.error('🔴 Supabase Storage Error:', error);
         // RLS policy error
         if (error.message?.includes('row-level security')) {
           throw new Error('Permiso denegado: Revisa las políticas RLS del bucket "menu" en Supabase. El usuario debe tener permisos para subir archivos.');
@@ -57,11 +56,9 @@ export class SupabaseService {
         .from(this.bucketName)
         .getPublicUrl(data.path);
 
-      console.log(`✅ PDF subido exitosamente: ${finalFileName}`);
       return publicUrlData.publicUrl;
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
-      console.error(`❌ Error subiendo PDF: ${errorMsg}`);
       throw new Error(`No se pudo subir el PDF: ${errorMsg}`);
     }
   }
@@ -95,7 +92,6 @@ export class SupabaseService {
       return this.getPublicUrl(fileName);
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
-      console.error(`❌ Error getPdfUrl: ${errorMsg}`);
       throw new Error(errorMsg);
     }
   }
@@ -119,7 +115,6 @@ export class SupabaseService {
         throw new Error(`Error Supabase: ${error.message}`);
       }
 
-      console.log(`✅ Se encontraron ${data?.length || 0} archivos en bucket`);
       // Filtrar y mapear archivos con id y updated_at válidos
       return (data || [])
         .filter((file) => file.id !== null && file.updated_at !== null)
@@ -130,7 +125,6 @@ export class SupabaseService {
         }));
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
-      console.error(`❌ Error listando archivos: ${errorMsg}`);
       throw new Error(`No se pudo listar archivos: ${errorMsg}`);
     }
   }
@@ -155,11 +149,9 @@ export class SupabaseService {
         throw new Error('No se pudo obtener URL pública');
       }
 
-      console.log(`✅ URL pública generada para: ${fileName}`);
       return data.publicUrl;
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
-      console.error(`❌ Error obteniendo URL pública: ${errorMsg}`);
       throw new Error(`No se pudo obtener URL: ${errorMsg}`);
     }
   }
@@ -212,7 +204,6 @@ export class SupabaseService {
       return data as T[] | null;
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Error desconocido';
-      console.error(`[SupabaseService] Query error in ${tableName}:`, errorMsg);
       throw new Error(errorMsg);
     }
   }
@@ -239,11 +230,9 @@ export class SupabaseService {
         throw new Error('No se retornó el registro insertado');
       }
 
-      console.log(`✅ Registro insertado en ${tableName}:`, inserted);
       return inserted as T;
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Error desconocido';
-      console.error(`[SupabaseService] Insert error in ${tableName}:`, errorMsg);
       throw new Error(errorMsg);
     }
   }
@@ -272,11 +261,9 @@ export class SupabaseService {
         throw new Error('No se retornó el registro actualizado');
       }
 
-      console.log(`✅ Registro ${id} actualizado en ${tableName}:`, updated);
       return updated as T;
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Error desconocido';
-      console.error(`[SupabaseService] Update error in ${tableName}:`, errorMsg);
       throw new Error(errorMsg);
     }
   }
@@ -297,10 +284,8 @@ export class SupabaseService {
         throw new Error(`Delete error: ${error.message}`);
       }
 
-      console.log(`✅ Registro ${id} eliminado de ${tableName}`);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Error desconocido';
-      console.error(`[SupabaseService] Delete error in ${tableName}:`, errorMsg);
       throw new Error(errorMsg);
     }
   }

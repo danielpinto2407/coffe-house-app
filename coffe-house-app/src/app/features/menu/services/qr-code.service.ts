@@ -24,7 +24,6 @@ export class QrCodeService {
       return qrDataUrl;
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
-      console.error('❌ Error generando QR:', errorMsg);
       throw new Error(`No se pudo generar el código QR: ${errorMsg}`);
     }
   }
@@ -51,7 +50,6 @@ export class QrCodeService {
       return canvas;
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
-      console.error('❌ Error generando QR en canvas:', errorMsg);
       throw new Error(`No se pudo generar canvas QR: ${errorMsg}`);
     }
   }
@@ -66,7 +64,6 @@ export class QrCodeService {
   downloadQRCode(qrDataUrl: string, fileName: string = 'qr-code.png'): void {
     // SSR Safety: Solo ejecutar en cliente
     if (typeof document === 'undefined' || !this.doc.defaultView) {
-      console.warn('⚠️ Descarga de QR no disponible en SSR');
       return;
     }
 
@@ -81,10 +78,8 @@ export class QrCodeService {
       (this.doc.body as HTMLBodyElement).appendChild(link);
       link.click();
       link.remove();
-      console.log(`✅ QR descargado: ${fileName}`);
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
-      console.error('❌ Error descargando QR:', errorMsg);
       throw new Error(`No se pudo descargar QR: ${errorMsg}`);
     }
   }

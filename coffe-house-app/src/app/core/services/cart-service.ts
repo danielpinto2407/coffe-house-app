@@ -43,7 +43,6 @@ export class CartService {
       const parsed: CartItem[] = JSON.parse(raw);
       return parsed.map(p => ({ product: p.product, qty: Math.max(1, Number(p.qty) || 1) }));
     } catch (e) {
-      console.warn('⚠️ Cart load error (SSR-safe):', e);
       return [];
     }
   }
@@ -58,7 +57,7 @@ export class CartService {
       }
       globalThis.window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
     } catch (e) {
-      console.warn('⚠️ Cart save error (SSR-safe):', e);
+      // localStorage error - continue
     }
   }
 
@@ -104,7 +103,6 @@ export class CartService {
    */
   private updateQuantity(productId: number, qty: number): void {
     if (qty < 0) {
-      console.warn('CartService: cantidad no puede ser negativa');
       return;
     }
 
@@ -165,7 +163,7 @@ export class CartService {
         globalThis.window.localStorage.removeItem(STORAGE_KEY);
       }
     } catch (e) {
-      console.warn('⚠️ Cart clear error:', e);
+      // localStorage error - continue
     }
   }
 

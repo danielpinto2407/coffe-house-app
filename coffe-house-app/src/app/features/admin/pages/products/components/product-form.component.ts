@@ -206,7 +206,7 @@ export class ProductFormComponent {
       await this.subcategoryService.loadSubcategories();
       this.subcategories.set(this.subcategoryService.subcategories());
     } catch (err) {
-      console.error('Error loading subcategories:', err);
+      // Error loading subcategories - continue
     }
   }
 

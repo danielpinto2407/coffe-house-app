@@ -20,7 +20,6 @@ export class ProductCardComponent {
 
   openProduct(): void {
     if (!this.product?.id) {
-      console.error('ProductCard: producto inválido');
       return;
     }
     this.modal.open(this.product);
@@ -30,7 +29,6 @@ export class ProductCardComponent {
     event.stopPropagation(); // no abrir modal
 
     if (!this.product?.id) {
-      console.error('ProductCard: producto inválido');
       return;
     }
 

@@ -173,12 +173,10 @@ export class QrModalComponent {
    */
   async downloadPdf(): Promise<void> {
     if (!this.pdfUrl) {
-      console.warn('⚠️ No hay URL del PDF para descargar');
       return;
     }
 
     try {
-      console.log('📥 Iniciando descarga del PDF...');
       const response = await fetch(this.pdfUrl);
       
       if (!response.ok) {
@@ -199,11 +197,8 @@ export class QrModalComponent {
       
       // ✅ Limpiar URL temporal
       URL.revokeObjectURL(link.href);
-      
-      console.log('✅ PDF descargado exitosamente');
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
-      console.error('❌ Error descargando PDF:', errorMsg);
     }
   }
 }

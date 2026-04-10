@@ -306,7 +306,6 @@ export class AdminProductsPage implements OnInit {
     } catch (error) {
       const msg = error instanceof Error ? error.message : 'Error desconocido';
       this.loadError.set(`Error cargando datos: ${msg}`);
-      console.error('[AdminProductsPage] Load error:', msg);
     }
   }
 
@@ -371,7 +370,6 @@ export class AdminProductsPage implements OnInit {
     } catch (error) {
       const msg = error instanceof Error ? error.message : 'Error desconocido';
       this.formError.set(msg);
-      console.error('[AdminProductsPage] Save error:', msg);
     } finally {
       this.isSaving.set(false);
     }
@@ -387,7 +385,6 @@ export class AdminProductsPage implements OnInit {
     } catch (error) {
       const msg = error instanceof Error ? error.message : 'Error desconocido';
       alert(`Error al eliminar: ${msg}`);
-      console.error('[AdminProductsPage] Delete error:', msg);
     }
   }
 

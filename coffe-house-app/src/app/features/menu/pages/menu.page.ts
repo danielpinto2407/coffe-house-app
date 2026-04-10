@@ -1,6 +1,5 @@
 import { Component, OnInit, signal, computed, inject, DestroyRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { debounceTime, Subject, switchMap, tap, shareReplay } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ProductCardComponent } from '../../../shared/product-card/product-card.component';
@@ -15,7 +14,7 @@ import { MenuStructure } from '../models/menu-structure.model';
 @Component({
   selector: 'app-menu',
   standalone: true,
-  imports: [CommonModule, ProductCardComponent, SearchBarComponent, QrModalComponent, FormsModule],
+  imports: [CommonModule, ProductCardComponent, SearchBarComponent, QrModalComponent],
   templateUrl: './menu.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -135,13 +134,11 @@ export class MenuPage implements OnInit {
    */
   async onViewMenuQr(): Promise<void> {
     try {
-      console.log('⏳ Cargando PDF existente desde Supabase...');
       await this.menuPdfState.loadExistingPdfAndQr();
       this.isQrModalOpen.set(true);
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
-      console.warn('⚠️ No hay menú disponible:', errorMsg);
-      // TODO: Mostrar toast/snackbar informando al usuario
+      // Error already handled by menuPdfState.error signal
       return;
     }
   }

@@ -23,9 +23,6 @@ export class HttpErrorInterceptor implements HttpInterceptor {
     req: HttpRequest<any>,
     next: HttpHandler
   ): Observable<HttpEvent<any>> {
-    // ✅ Log de petición
-    console.log(`📤 HTTP ${req.method} → ${req.url}`);
-
     return next.handle(req).pipe(
       // ✅ Reintentos automáticos para códigos específicos
       retry({
@@ -43,11 +40,6 @@ export class HttpErrorInterceptor implements HttpInterceptor {
       // ✅ Manejo de errores
       catchError((error: HttpErrorResponse) => {
         return this.handleError(error, req);
-      }),
-
-      // ✅ Log de finalización
-      finalize(() => {
-        console.log(`✅ HTTP completado: ${req.url}`);
       })
     );
   }
@@ -79,11 +71,9 @@ export class HttpErrorInterceptor implements HttpInterceptor {
     if (error.error instanceof ErrorEvent) {
       // Error del cliente (network error, etc)
       errorMessage = `Error: ${error.error.message}`;
-      console.error('🔥 Client Error:', error.error);
     } else {
       // Error del servidor
       errorMessage = `${error.status}: ${error.statusText || 'Error en servidor'}`;
-      console.error(`🔥 Server Error: ${error.status} - ${req.url}`, error.error);
     }
 
     // ✅ Manejo específico de códigos
@@ -97,9 +87,7 @@ export class HttpErrorInterceptor implements HttpInterceptor {
       case 401:
         errorMessage = 'No autorizado - por favor inicia sesión';
         // ✅ Redirigir a login
-        this.router.navigate(['/auth/login']).catch(err => 
-          console.error('Error navigating to login:', err)
-        );
+        this.router.navigate(['/auth/login']).catch(() => {});
         break;
       case 403:
         errorMessage = 'Acceso denegado';

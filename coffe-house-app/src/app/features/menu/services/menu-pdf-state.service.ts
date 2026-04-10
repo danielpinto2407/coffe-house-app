@@ -59,11 +59,9 @@ export class MenuPdfStateService {
       const qrDataUrl = await this.qrCodeService.generateQRCode(publicUrl);
       this._qrCode.set(qrDataUrl);
 
-      console.log('✅ PDF cargado a Supabase y QR generado');
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
       this._error.set(errorMsg);
-      console.error('❌ Error uploadPdfAndGenerateQr:', errorMsg);
       throw error;
     } finally {
       this._isLoadingPdf.set(false);
@@ -92,11 +90,9 @@ export class MenuPdfStateService {
       const qrDataUrl = await this.qrCodeService.generateQRCode(currentPdfUrl);
       this._qrCode.set(qrDataUrl);
 
-      console.log('✅ QR regenerado exitosamente');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Error desconocido';
       this._error.set(message);
-      console.error('❌ Error generateMenuQr:', message);
       throw error;
     } finally {
       this._isLoadingQr.set(false);
@@ -121,11 +117,9 @@ export class MenuPdfStateService {
       const qrDataUrl = await this.qrCodeService.generateQRCode(publicUrl);
       this._qrCode.set(qrDataUrl);
 
-      console.log('✅ PDF existente cargado y QR generado');
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'No hay menú disponible aún';
       this._error.set(errorMsg);
-      console.warn('⚠️ Error loadExistingPdfAndQr:', errorMsg);
       throw error;
     } finally {
       this._isLoadingPdf.set(false);
@@ -142,7 +136,6 @@ export class MenuPdfStateService {
     
     if (!currentQr?.trim()) {
       this._error.set('No hay código QR disponible para descargar');
-      console.warn('⚠️ No hay QR para descargar');
       return;
     }
 
@@ -151,7 +144,6 @@ export class MenuPdfStateService {
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
       this._error.set(errorMsg);
-      console.error('❌ Error downloadQr:', errorMsg);
     }
   }
 
@@ -165,6 +157,5 @@ export class MenuPdfStateService {
     this._error.set(null);
     this._isLoadingPdf.set(false);
     this._isLoadingQr.set(false);
-    console.log('🧹 Estado del menú limpiado');
   }
 }

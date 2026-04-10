@@ -30,18 +30,11 @@ export class CartOverlayComponent {
     
     // ✅ Validar que el carrito no esté vacío
     if (!payload || payload.length === 0) {
-      console.warn('Cannot checkout with empty cart');
       return;
     }
 
     const items = this.cart.getItemsSnapshot();
     const total = items.reduce((acc, it) => acc + (Number(it.product.price || 0) * it.qty), 0);
-
-    console.log('📋 Checkout initiated:', {
-      itemCount: payload.length,
-      total,
-      timestamp: new Date().toISOString(),
-    });
 
     // ✅ TODO: Integrar con servicio de pagos
     // 1. Validar items con ProductValidator

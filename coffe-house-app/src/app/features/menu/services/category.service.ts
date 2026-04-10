@@ -29,7 +29,6 @@ export class CategoryService {
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Error al cargar categorías';
       this._error.set(errorMsg);
-      console.error('[CategoryService] Error loading categories:', errorMsg);
     } finally {
       this._loading.set(false);
     }

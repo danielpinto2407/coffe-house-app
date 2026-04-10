@@ -34,7 +34,6 @@ export class ProductService {
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Error al cargar productos';
       this._error.set(errorMsg);
-      console.error('[ProductService] Error loading products:', errorMsg);
     } finally {
       this._loading.set(false);
     }

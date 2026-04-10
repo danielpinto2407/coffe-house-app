@@ -29,7 +29,6 @@ export class SubcategoryService {
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Error al cargar subcategorías';
       this._error.set(errorMsg);
-      console.error('[SubcategoryService] Error loading subcategories:', errorMsg);
     } finally {
       this._loading.set(false);
     }

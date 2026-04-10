@@ -18,7 +18,6 @@ export class ProductModalComponent {
 
   onAddToCart(product: Product | null | undefined): void {
     if (!product?.id) {
-      console.error('ProductModal: producto inválido');
       return;
     }
 
