@@ -63,7 +63,9 @@ export class MenuApiService {
                 .products()
                 .filter(p => p.subcategoryId === sub.id && p.active !== false)
             }))
+            .filter(sub => sub.products.length > 0) // ✅ Solo subcategorías con productos
         }))
+        .filter(cat => cat.subcategories.length > 0) // ✅ Solo categorías con subcategorías
         .sort((a, b) => a.order - b.order);
     } catch (error) {
       console.error('Error cargando menú desde Supabase:', error);
