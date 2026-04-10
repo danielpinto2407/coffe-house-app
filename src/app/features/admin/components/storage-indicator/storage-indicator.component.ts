@@ -4,7 +4,6 @@ import { ChangeDetectionStrategy } from '@angular/core';
 import { StorageMonitoringService } from '../../../../core/services/storage-monitoring.service';
 import { FormatBytesPipe } from '../../../../core/pipes/format-bytes.pipe';
 import { interval } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-storage-indicator',
@@ -160,15 +159,8 @@ export class StorageIndicatorComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    // Cargar al inicializar
+    // Cargar estadísticas al inicializar
     this.onRefresh();
-    
-    // Auto-refrescar cada 5 minutos
-    interval(5 * 60 * 1000)
-      .pipe(
-        switchMap(() => this.storageMonitoring.getStorageStats$())
-      )
-      .subscribe();
   }
 
   async onRefresh(): Promise<void> {
