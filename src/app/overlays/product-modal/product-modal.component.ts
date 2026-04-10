@@ -29,4 +29,12 @@ export class ProductModalComponent {
   onClose(): void {
     this.modal.close();
   }
+
+  /**
+   * ✅ Retorna la selección de texto actual (si existe)
+   * Usado para no cerrar modal mientras el usuario selecciona texto
+   */
+  getSelection(): Selection | null {
+    return window.getSelection?.() || null;
+  }
 }

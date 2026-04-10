@@ -3,7 +3,7 @@
   *ngIf="modal.product$ | async as product"
   class="backdrop fixed inset-0 backdrop-blur-sm z-40"
   [style.backgroundColor]="'rgba(0, 0, 0, 0.5)'"
-  (click)="modal.close()"
+  (click)="!getSelection()?.toString() && modal.close()"
   (keydown.escape)="modal.close()"
   role="presentation"
   tabindex="-1">
