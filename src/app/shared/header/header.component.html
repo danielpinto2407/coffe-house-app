@@ -58,9 +58,9 @@
       </div>
     </div>
 
-    <!-- 2️⃣ CARRITO (solo si está autenticado, es cliente y auth está listo) -->
+    <!-- 2️⃣ CARRITO (siempre visible para todos menos admin) -->
     <button 
-      *ngIf="isAuthReady() && auth.isLoggedIn() && !auth.isAdmin()"
+      *ngIf="isAuthReady() && !auth.isAdmin()"
       type="button"
       class="relative p-2 rounded-lg hover:bg-secondary/20 transition-colors duration-200 text-secondary"
       (click)="cart.open()"
@@ -84,7 +84,21 @@
     <!-- 3️⃣ NAVEGACIÓN DESKTOP (Admin + Perfil/Logout) -->
     <div class="hidden md:flex items-center gap-1">
 
-      <!-- 3a. BOTÓN ADMIN (solo si es admin y auth está listo) -->
+      <!-- 3a. BOTÓN ADMINISTRAR (para todos los usuarios) -->
+      <!-- Si NO está logueado → va a login -->
+      <!-- Si está logueado y es admin → va a admin -->
+      <!-- Si está logueado pero NO es admin → no se muestra -->
+      <a *ngIf="isAuthReady() && (!auth.isLoggedIn())" 
+         [routerLink]="['/auth/login']"
+         class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-secondary font-medium 
+                hover:bg-secondary/15 transition-colors duration-200"
+         title="Inicia sesión para acceder al panel de administración"
+         aria-label="Administración (requiere login)">
+        <span class="material-icons text-xl" aria-hidden="true">admin_panel_settings</span>
+        <span class="hidden lg:inline text-sm">Administrar</span>
+      </a>
+
+      <!-- 3b. BOTÓN ADMIN (solo si es admin y auth está listo) -->
       <a *ngIf="isAuthReady() && auth.isLoggedIn() && auth.isAdmin()" 
          [routerLink]="['/admin']"
          class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-secondary font-medium 
@@ -94,7 +108,7 @@
         <span class="hidden lg:inline text-sm">Admin</span>
       </a>
 
-      <!-- 3b. MENÚ USUARIO (Perfil + Logout) - solo si está autenticado y auth está listo -->
+      <!-- 3c. MENÚ USUARIO (Perfil + Logout) - solo si está autenticado y auth está listo -->
       <ng-container *ngIf="isAuthReady() && auth.isLoggedIn()">
         <div class="relative">
           <button type="button" 

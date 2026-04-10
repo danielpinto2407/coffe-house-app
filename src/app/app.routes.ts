@@ -1,11 +1,10 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './core/guards/auth.guard';
 import { adminGuard } from './core/guards/admin.guard';
+import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   {
     path: 'menu',
-    canActivate: [authGuard],
     loadChildren: () =>
       import('./features/menu/menu.routes').then(m => m.MENU_ROUTES),
   },
@@ -22,11 +21,11 @@ export const routes: Routes = [
   },
   {
     path: '',
-    redirectTo: 'auth/login',
+    redirectTo: 'menu',
     pathMatch: 'full',
   },
   {
     path: '**',
-    redirectTo: 'auth/login',
+    redirectTo: 'menu',
   },
 ];
