@@ -201,11 +201,52 @@ export class SupabaseService {
         throw new Error(`Query error: ${error.message}`);
       }
 
+      // Convertir snake_case a camelCase para los objetos retornados
+      if (Array.isArray(data)) {
+        return data.map(item => this.snakeToCamelCase(item)) as T[] | null;
+      }
+
       return data as T[] | null;
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Error desconocido';
       throw new Error(errorMsg);
     }
+  }
+
+  /**
+   * Convierte keys de camelCase a snake_case para compatibilidad con Supabase
+   */
+  private camelToSnakeCase(obj: any): any {
+    if (!obj || typeof obj !== 'object') return obj;
+    
+    const newObj: any = Array.isArray(obj) ? [] : {};
+    
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        const snakeKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+        newObj[snakeKey] = obj[key];
+      }
+    }
+    
+    return newObj;
+  }
+
+  /**
+   * Convierte keys de snake_case a camelCase cuando recibimos datos de Supabase
+   */
+  private snakeToCamelCase(obj: any): any {
+    if (!obj || typeof obj !== 'object') return obj;
+    
+    const newObj: any = Array.isArray(obj) ? [] : {};
+    
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+        newObj[camelKey] = obj[key];
+      }
+    }
+    
+    return newObj;
   }
 
   /**
@@ -216,9 +257,10 @@ export class SupabaseService {
    */
   async insert<T>(tableName: string, data: any): Promise<T> {
     try {
+      const convertedData = this.camelToSnakeCase(data);
       const { data: inserted, error } = await this.supabase
         .from(tableName)
-        .insert([data])
+        .insert([convertedData])
         .select()
         .single();
 
@@ -230,7 +272,8 @@ export class SupabaseService {
         throw new Error('No se retornó el registro insertado');
       }
 
-      return inserted as T;
+      // Convertir snake_case a camelCase
+      return this.snakeToCamelCase(inserted) as T;
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Error desconocido';
       throw new Error(errorMsg);
@@ -246,9 +289,10 @@ export class SupabaseService {
    */
   async update<T>(tableName: string, id: number, updates: any): Promise<T> {
     try {
+      const convertedUpdates = this.camelToSnakeCase(updates);
       const { data: updated, error } = await this.supabase
         .from(tableName)
-        .update(updates)
+        .update(convertedUpdates)
         .eq('id', id)
         .select()
         .single();
@@ -261,7 +305,8 @@ export class SupabaseService {
         throw new Error('No se retornó el registro actualizado');
       }
 
-      return updated as T;
+      // Convertir snake_case a camelCase
+      return this.snakeToCamelCase(updated) as T;
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Error desconocido';
       throw new Error(errorMsg);
