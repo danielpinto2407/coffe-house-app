@@ -3,7 +3,6 @@ import type { Content } from 'pdfmake/interfaces';
 import { MenuStructure } from '../models/menu-structure.model';
 import { Product } from '../models/product.model';
 import { ThemeService } from '../../../core/services/theme.service';
-import { ThemeConfig } from '../../../core/themes/theme.config';
 
 // Lazy load pdfMake only when needed
 let pdfMakeInstance: any = null;
@@ -219,9 +218,6 @@ export class MenuPdfService {
     const blob = await response.blob();
 
     if (blob.size > PDF_CONFIG.logo.maxSize * 1024) {
-      console.warn(
-        `Logo size ${blob.size / 1024}KB exceeds max ${PDF_CONFIG.logo.maxSize}KB, skipping`
-      );
       return '';
     }
 
@@ -246,6 +242,8 @@ export class MenuPdfService {
     const currentTheme = this.themeService.currentTheme();
     const colors = this.mapThemeColorsToPdf(currentTheme);
     const { pageSize, pageMargins } = PDF_CONFIG;
+
+    const menuContent = this.buildMenuContentDark(menuData, colors);
 
     return {
       pageSize,
@@ -325,7 +323,7 @@ export class MenuPdfService {
           pageBreak: 'after' as const,
         },
 
-        ...(this.buildMenuContentDark(menuData, colors) as Content[]),
+        ...menuContent,
       ],
 
       styles: this.buildStylesDark(colors),
@@ -566,7 +564,7 @@ export class MenuPdfService {
     };
   }
 
-  private mapThemeColorsToPdf(theme: ThemeConfig): PdfColors {
+  private mapThemeColorsToPdf(theme: any): PdfColors {
     const isDark = theme.id === 'dark';
     return {
       bgDark: isDark ? theme.colors.background : theme.colors.backgroundLight,

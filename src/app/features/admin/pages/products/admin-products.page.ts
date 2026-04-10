@@ -89,7 +89,7 @@ import { Subcategory } from '../../../menu/models/subcategory.model';
             <thead class="bg-background border-b border-border">
               <tr>
                 <th class="text-left px-4 py-3 text-text-secondary font-semibold">Producto</th>
-                <th class="text-left px-4 py-3 text-text-secondary font-semibold hidden md:table-cell">Categoría</th>
+                <th class="text-left px-4 py-3 text-text-secondary font-semibold hidden md:table-cell">Subcategoría</th>
                 <th class="text-left px-4 py-3 text-text-secondary font-semibold hidden lg:table-cell">Descripción</th>
                 <th class="text-right px-4 py-3 text-text-secondary font-semibold">Precio</th>
                 <th class="text-center px-4 py-3 text-text-secondary font-semibold">Acciones</th>

@@ -1,4 +1,7 @@
-<app-header></app-header>
+@if (!isAuthRoute()) {
+  <app-header></app-header>
+}
 <app-product-modal></app-product-modal>
 <router-outlet></router-outlet>
 <app-cart-overlay></app-cart-overlay>
+<app-notification-container></app-notification-container>

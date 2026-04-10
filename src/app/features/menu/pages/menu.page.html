@@ -1,87 +1,54 @@
 <app-search-bar (search)="onSearch($event)"></app-search-bar>
 
-<!-- ✅ Botones de acciones del menú -->
-<div class="p-4 flex justify-end gap-3">
-  <!-- Botón: Generar Menú (solo admin) - genera PDF y sube a Supabase -->
-  <button
-    *ngIf="isAdmin()"
-    type="button"
-    (click)="onGenerateMenuPdf()"
-    [disabled]="isGeneratingPdf()"
-    class="flex items-center gap-2 bg-secondary text-primary px-4 py-2 rounded-lg font-medium
-           hover:bg-accent transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-    [attr.aria-label]="isGeneratingPdf() ? 'Generando menú...' : 'Generar menú'">
-    <span class="material-icons" [style.fontSize.px]="18" aria-hidden="true">
-      {{ isGeneratingPdf() ? 'hourglass_empty' : 'save' }}
-    </span>
-    {{ isGeneratingPdf() ? 'Generando...' : 'Generar Menú' }}
-  </button>
-
-  <!-- Botón: Visualizar Menú (muestra QR del PDF en Supabase) -->
-  <button
-    type="button"
-    (click)="onViewMenuQr()"
-    [disabled]="isLoadingQr()"
-    class="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg font-medium
-           hover:bg-accent transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-    [attr.aria-label]="isLoadingQr() ? 'Generando QR...' : 'Ver menú QR'">
-    <span class="material-icons" [style.fontSize.px]="18" aria-hidden="true">
-      {{ isLoadingQr() ? 'hourglass_empty' : 'qr_code_2' }}
-    </span>
-    {{ isLoadingQr() ? 'Generando QR...' : 'Visualizar Menú' }}
-  </button>
-</div>
-
 <!-- ✅ Estado de carga mejorado -->
-<div *ngIf="isLoading()" class="p-4 flex justify-center items-center min-h-screen">
-  <div class="text-lg text-secondary">Cargando menú...</div>
-</div>
+@if (isLoading()) {
+  <div class="p-4 flex justify-center items-center min-h-screen">
+    <div class="text-lg text-secondary">Cargando menú...</div>
+  </div>
+}
 
 <!-- ✅ Menú renderizado con Signals -->
-<div *ngIf="!isLoading()" class="p-4">
-  <!-- Sin resultados -->
-  <div *ngIf="menu().length === 0" class="text-center p-8">
-    <p class="text-secondary text-lg">No se encontraron productos que coincidan con tu búsqueda.</p>
-  </div>
+@if (!isLoading()) {
+  <div class="p-4">
+    <!-- Sin resultados -->
+    @if (menu().length === 0) {
+      <div class="text-center p-8">
+        <p class="text-secondary text-lg">No se encontraron productos que coincidan con tu búsqueda.</p>
+      </div>
+    }
 
-  <!-- Categorías -->
-  <div *ngFor="let cat of menu()" class="mb-4">
-    <h2 class="text-2xl font-bold text-text mb-3">
-      {{ cat.name }}
-    </h2>
-    <h3 class="font-bold text-text-secondary mb-3">
-      {{ cat.description }}
-    </h3>
-
-    <!-- Subcategorías (solo si tienen productos) -->
-    <div *ngFor="let sub of cat.subcategories" class="mb-3">
-      <!-- 🔧 Solo mostrar subcategoría si tiene productos -->
-      <ng-container *ngIf="sub.products.length > 0">
-        <h3 class="text-xl font-semibold text-text mb-2">
-          {{ sub.name }}
+    <!-- Categorías -->
+    @for (cat of menu(); track cat.id) {
+      <div class="mb-4">
+        <h2 class="text-2xl font-bold text-text mb-3">
+          {{ cat.name }}
+        </h2>
+        <h3 class="font-bold text-text-secondary mb-3">
+          {{ cat.description }}
         </h3>
 
-        <!-- Grid de productos -->
-        <div class="grid gap-8 sm:gap-10"
-             style="grid-template-columns: repeat(auto-fit, minmax(130px,1fr));">
+        <!-- Subcategorías (solo si tienen productos) -->
+        @for (sub of cat.subcategories; track sub.id) {
+          @if (sub.products.length > 0) {
+            <div class="mb-3">
+              <h3 class="text-xl font-semibold text-text mb-2">
+                {{ sub.name }}
+              </h3>
 
-          <app-product-card
-            *ngFor="let prod of sub.products"
-            [product]="prod">
-          </app-product-card>
+              <!-- Grid de productos -->
+              <div class="grid gap-8 sm:gap-10"
+                   style="grid-template-columns: repeat(auto-fit, minmax(130px,1fr));">
 
-        </div>
-      </ng-container>
-    </div>
+                @for (prod of sub.products; track prod.id) {
+                  <app-product-card [product]="prod"></app-product-card>
+                }
+
+              </div>
+            </div>
+          }
+        }
+      </div>
+    }
+
   </div>
-
-</div>
-<!-- ✅ Modal QR para visualizar el menú -->
-<app-qr-modal
-  [isOpen]="isQrModalOpen()"
-  [qrCode]="qrCode()"
-  [pdfUrl]="pdfUrl()"
-  [isLoading]="isLoadingQr()"
-  [error]="qrError()"
-  (closed)="closeQrModal()">
-</app-qr-modal>
+}

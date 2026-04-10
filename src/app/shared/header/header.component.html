@@ -58,9 +58,9 @@
       </div>
     </div>
 
-    <!-- 2️⃣ CARRITO (solo si está autenticado y auth está listo) -->
+    <!-- 2️⃣ CARRITO (solo si está autenticado, es cliente y auth está listo) -->
     <button 
-      *ngIf="isAuthReady() && auth.isLoggedIn()"
+      *ngIf="isAuthReady() && auth.isLoggedIn() && !auth.isAdmin()"
       type="button"
       class="relative p-2 rounded-lg hover:bg-secondary/20 transition-colors duration-200 text-secondary"
       (click)="cart.open()"
@@ -146,7 +146,7 @@
       </ng-container>
     </div>
 
-    <!-- 4️⃣ MENÚ HAMBURGUESA MÓVIL -->
+    <!-- 4️⃣ MENÚ HAMBURGUESA MÓVIL (siempre visible en móvil) -->
     <button type="button" 
             class="p-2 rounded-lg hover:bg-secondary/20 transition-colors duration-200 md:hidden text-secondary"
             (click)="openMenu()"

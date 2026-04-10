@@ -27,7 +27,17 @@ export class AuthService {
   constructor() {
     this.supabase = createClient(
       environment.supabase.url,
-      environment.supabase.anonKey
+      environment.supabase.anonKey,
+      {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+          storageKey: 'sb-zeauqjdwayafrjsqcbrm-auth-token',
+          // ✅ Desactivar locks que causan NavigatorLockAcquireTimeoutError en móvil
+          storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+        },
+      }
     );
 
     if (!isPlatformBrowser(this.platformId)) {

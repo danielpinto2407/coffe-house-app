@@ -20,8 +20,7 @@ export class QrGeneratorService {
         }
       });
       return qrDataUrl;
-    } catch (error) {
-      console.error('Error generando QR:', error);
+    } catch {
       throw new Error('No se pudo generar el código QR');
     }
   }
