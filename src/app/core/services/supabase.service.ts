@@ -344,4 +344,35 @@ export class SupabaseService {
       throw new Error(errorMsg);
     }
   }
+
+  /**
+   * ✅ Obtiene el cliente de Supabase (para usar en otros servicios)
+   */
+  getSupabaseClient(): SupabaseClient {
+    return this.supabase;
+  }
+
+  /**
+   * ✅ Elimina un archivo del bucket de storage
+   * @param bucket - Nombre del bucket
+   * @param path - Ruta del archivo en el bucket
+   */
+  async deleteFile(bucket: string, path: string): Promise<void> {
+    try {
+      if (!path?.trim()) {
+        throw new Error('Ruta de archivo inválida');
+      }
+
+      const { error } = await this.supabase.storage
+        .from(bucket)
+        .remove([path]);
+
+      if (error) {
+        throw new Error(`Error al eliminar archivo: ${error.message}`);
+      }
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Error desconocido';
+      throw new Error(errorMsg);
+    }
+  }
 }

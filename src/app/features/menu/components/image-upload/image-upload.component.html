@@ -1,0 +1,141 @@
+<div class="p-6 space-y-6">
+  <!-- Cabecera -->
+  <div>
+    <h2 class="text-2xl font-bold text-text-primary mb-2">Gestor de Imágenes de Productos</h2>
+    <p class="text-text-secondary text-sm">
+      Sube y optimiza imágenes. Se comprimen automáticamente a máximo 500KB.
+    </p>
+  </div>
+
+  <!-- Zona de carga (Drag & Drop) -->
+  <button 
+    type="button"
+    class="w-full border-2 border-dashed border-border rounded-xl p-8 text-center
+            hover:border-primary transition cursor-pointer bg-surface/50"
+    [class.border-primary]="isDragging()"
+    [class.bg-primary/5]="isDragging()"
+    (click)="fileInput.click()"
+    (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave()"
+    (drop)="onDrop($event)">
+    <input 
+      type="file"
+      #fileInput
+      multiple
+      accept="image/webp,image/jpeg,image/png"
+      (change)="onFileSelected($event)"
+      hidden
+    />
+    
+    <span class="material-icons text-5xl text-primary mb-3 block">cloud_upload</span>
+    <p class="text-text-primary font-semibold mb-1">
+      {{ isDragging() ? '📥 Suelta los archivos aquí' : '📤 Arrastra imágenes o haz clic' }}
+    </p>
+    <p class="text-text-secondary text-sm">
+      WebP, JPEG, PNG • Máx 5MB cada una
+    </p>
+  </button>
+
+  <!-- Vista previa de archivos -->
+  @if (filePreviews().length > 0) {
+    <div class="space-y-4">
+      <h3 class="font-semibold text-text-primary">
+        Archivos preparados ({{ filePreviews().length }})
+      </h3>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        @for (preview of filePreviews(); track preview.file.name) {
+          <div class="bg-surface rounded-lg overflow-hidden border border-border hover:border-primary transition">
+            
+            <!-- Miniatura -->
+            <div class="w-full h-40 bg-background overflow-hidden">
+              <img [src]="preview.preview" alt="preview" class="w-full h-full object-cover">
+            </div>
+
+            <!-- Info -->
+            <div class="p-3 space-y-2">
+              <p class="text-sm font-medium text-text-primary truncate">{{ preview.file.name }}</p>
+              
+              <!-- Tamaño -->
+              <div class="text-xs text-text-secondary space-y-1">
+                <p>Original: {{ (preview.originalSize / 1024).toFixed(1) }} KB</p>
+                @if (preview.compressedSize) {
+                  <p>Comprimido: {{ (preview.compressedSize / 1024).toFixed(1) }} KB</p>
+                  <p class="text-green-500 font-semibold">{{ preview.savings }}</p>
+                }
+              </div>
+
+              <!-- Botones -->
+              <div class="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  (click)="removeFile(preview.file.name)"
+                  class="flex-1 px-2 py-1 text-xs bg-red-500/10 text-red-500 rounded hover:bg-red-500/20 transition font-medium">
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Botones de acción -->
+      <div class="flex gap-2 pt-4">
+        <button
+          type="button"
+          (click)="uploadAll()"
+          [disabled]="isUploading() || filePreviews().length === 0"
+          class="flex-1 flex items-center justify-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:opacity-90 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
+          <span class="material-icons">{{ isUploading() ? 'hourglass_empty' : 'upload' }}</span>
+          {{ isUploading() ? 'Subiendo...' : 'Subir ' + filePreviews().length + ' imagen(es)' }}
+        </button>
+        <button
+          type="button"
+          (click)="clearAll()"
+          [disabled]="isUploading()"
+          class="px-4 py-2 rounded-lg border border-border text-text-primary hover:bg-surface transition font-semibold disabled:opacity-50">
+          Limpiar
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Progreso de carga -->
+  @if (uploadProgress()) {
+    <div class="bg-background rounded-lg p-4 space-y-3">
+      <div class="flex items-center justify-between">
+        <p class="font-semibold text-text-primary">{{ uploadProgress()!.fileName }}</p>
+        <span class="text-sm text-text-secondary">{{ uploadProgress()!.progress }}%</span>
+      </div>
+      <div class="w-full bg-surface rounded-full h-2 overflow-hidden">
+        <div 
+          class="h-full bg-primary transition-all duration-300"
+          [style.width.%]="uploadProgress()!.progress">
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Productos sin imagen -->
+  <div class="border border-border rounded-lg p-4 bg-surface">
+    <h3 class="font-semibold text-text-primary mb-3">
+      Productos sin imagen ({{ productsWithoutImage().length }})
+    </h3>
+    
+    @if (productsWithoutImage().length > 0) {
+      <div class="space-y-2 max-h-64 overflow-y-auto">
+        @for (product of productsWithoutImage(); track product.id) {
+          <div class="flex items-center justify-between bg-background p-3 rounded">
+            <div>
+              <p class="font-medium text-text-primary">{{ product.name }}</p>
+              <p class="text-xs text-text-secondary">${{ product.price }}</p>
+            </div>
+            <span class="material-icons text-yellow-500 text-lg">image_not_supported</span>
+          </div>
+        }
+      </div>
+    } @else {
+      <p class="text-center text-text-secondary text-sm">✅ Todos los productos tienen imagen</p>
+    }
+  </div>
+</div>

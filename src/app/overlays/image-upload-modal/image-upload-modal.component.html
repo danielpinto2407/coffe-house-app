@@ -1,0 +1,78 @@
+<!-- Backdrop -->
+<div class="fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-4">
+
+  <!-- Modal -->
+  <div class="bg-surface rounded-2xl shadow-2xl w-full max-w-md max-h-screen overflow-y-auto">
+
+    <!-- Header -->
+    <div class="sticky top-0 bg-surface border-b border-border px-6 py-4 flex items-center justify-between">
+      <h2 class="text-xl font-bold text-text-primary">Subir Imagen</h2>
+      <button type="button" (click)="close()" class="p-1 rounded-full hover:bg-background transition" aria-label="Cerrar">
+        <span class="material-icons text-text-secondary">close</span>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="p-6 space-y-4">
+
+      <!-- Drop Zone (sin preview) -->
+      @if (!preview()) {
+        <div role="button" tabindex="0"
+             class="w-full border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition"
+             [class]="isDragging() ? 'border-primary bg-primary/5' : 'border-border bg-background/50 hover:border-primary'"
+             (click)="triggerInput()"
+             (dragover)="onDragOver($event)"
+             (dragleave)="onDragLeave()"
+             (drop)="onDrop($event)">
+          <span class="material-icons text-4xl text-primary block">cloud_upload</span>
+          <p class="text-text-primary font-semibold">{{ isDragging() ? '📥 Suelta aquí' : '📤 Arrastra o haz clic' }}</p>
+          <p class="text-text-secondary text-xs">WebP, JPEG, PNG • Máx 5MB</p>
+        </div>
+      }
+
+      <!-- Preview -->
+      @if (preview()) {
+        <img [src]="preview()" alt="Preview" class="w-full h-48 rounded-lg object-cover border border-border" />
+
+        <div class="bg-background/50 rounded-lg p-3 text-sm space-y-2">
+          <div class="flex justify-between">
+            <span class="text-text-secondary">Original:</span>
+            <span class="text-text-primary font-medium">{{ originalSize() ? (originalSize()! / 1024 / 1024).toFixed(2) + 'MB' : '—' }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-text-secondary">Comprimido:</span>
+            <span class="text-primary font-medium">{{ estimatedSize() }}</span>
+          </div>
+        </div>
+
+        <button type="button" (click)="triggerInput()"
+                class="w-full py-2 px-3 text-sm border border-border rounded-lg text-text-secondary hover:bg-background transition">
+          Cambiar
+        </button>
+      }
+
+      <!-- Input oculto (único) -->
+      <input #fileInput type="file" accept="image/webp,image/jpeg,image/png" (change)="onFileSelected($event)" hidden />
+
+    </div>
+
+    <!-- Footer -->
+    <div class="sticky bottom-0 bg-surface border-t border-border px-6 py-4 flex gap-3">
+      <button type="button" (click)="close()"
+              class="flex-1 py-2 rounded-lg border border-border text-text-secondary hover:bg-background transition font-medium">
+        Cancelar
+      </button>
+      <button type="button" (click)="uploadImage()" [disabled]="!preview() || isUploading()"
+              class="flex-1 py-2 rounded-lg bg-primary text-white hover:opacity-90 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
+        @if (isUploading()) {
+          <span class="flex items-center justify-center gap-1">
+            <span class="inline-block animate-spin">⏳</span> Subiendo...
+          </span>
+        } @else {
+          Subir
+        }
+      </button>
+    </div>
+
+  </div>
+</div>

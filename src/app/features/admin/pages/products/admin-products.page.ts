@@ -5,6 +5,7 @@ import {
   signal,
   computed,
   OnInit,
+  viewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
@@ -13,8 +14,8 @@ import { Product } from '../../../menu/models/product.model';
 import { ProductService } from '../../../menu/services/product.service';
 import { CategoryService } from '../../../menu/services/category.service';
 import { SubcategoryService } from '../../../menu/services/subcategory.service';
-import { Category } from '../../../menu/models/category.model';
-import { Subcategory } from '../../../menu/models/subcategory.model';
+import { ImageUploadService } from '../../../../core/services/image-upload.service';
+import { ImageOptimizationService } from '../../../../core/services/image-optimization.service';
 
 @Component({
   selector: 'app-admin-products',
@@ -118,7 +119,7 @@ import { Subcategory } from '../../../menu/models/subcategory.model';
                     {{ product.description || '—' }}
                   </td>
                   <td class="px-4 py-3 text-right font-semibold text-primary">
-                    {{ product.price.toFixed(2) | currency }}
+                    {{ product.price | number:'1.0-0' }}
                   </td>
                   <td class="px-4 py-3">
                     <div class="flex items-center justify-center gap-2">
@@ -220,14 +221,69 @@ import { Subcategory } from '../../../menu/models/subcategory.model';
                           class="w-full px-3 py-2 bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary transition resize-none"></textarea>
               </div>
 
-              <!-- Imagen -->
+              <!-- Imagen con Drag-Drop Inline -->
               <div>
-                <label class="block text-sm font-medium text-text-secondary mb-1">URL de imagen</label>
-                <input formControlName="image" type="url" placeholder="https://..."
-                       class="w-full px-3 py-2 bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary transition" />
-                @if (form.get('image')?.value) {
-                  <img [src]="form.get('image')?.value" alt="Preview" class="w-12 h-12 rounded-lg object-cover mt-2" />
-                }
+                <label class="block text-sm font-medium text-text-secondary mb-1">Imagen del Producto</label>
+                
+                <!-- URL Input -->
+                <div class="flex gap-2 mb-3">
+                  <input formControlName="image" type="url" placeholder="https://..."
+                         class="flex-1 px-3 py-2 bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary transition" />
+                </div>
+
+                <!-- Preview actual si existe -->
+                <div *ngIf="form.get('image')?.value" class="mb-3 flex items-start gap-3">
+                  <img [src]="form.get('image')?.value" alt="Preview" class="w-16 h-16 rounded-lg object-cover border border-border flex-shrink-0" />
+                  <div class="flex-1 flex flex-col justify-center gap-1">
+                    <p class="text-xs text-text-secondary">Imagen actual</p>
+                    <button type="button"
+                            (click)="clearImage()"
+                            class="text-xs text-red-500 hover:text-red-600 transition self-start">
+                      Eliminar
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Zona Drag-Drop -->
+                <div (dragover)="onImageDragOver($event)"
+                     (dragleave)="onImageDragLeave()"
+                     (drop)="onImageDrop($event)"
+                     [ngClass]="{'bg-primary/10': isImageDragging(), 'border-primary': isImageDragging()}"
+                     class="relative border-2 border-dashed border-border rounded-lg p-6 text-center transition cursor-pointer hover:border-primary hover:bg-primary/5">
+                  
+                  <input #imageInput type="file" accept="image/*" hidden
+                         (change)="onImageFileSelected($event)" />
+                  
+                  <div *ngIf="isUploadingImage()" class="space-y-2">
+                    <div class="animate-spin inline-block">
+                      <span class="material-icons text-2xl text-primary">hourglass_empty</span>
+                    </div>
+                    <p class="text-sm text-text-secondary">Subiendo: {{ uploadImageProgress() }}%</p>
+                  </div>
+
+                  <div *ngIf="!isUploadingImage()" class="space-y-2">
+                    <span class="material-icons text-3xl text-text-secondary block">cloud_upload</span>
+                    <div>
+                      <p class="text-sm font-medium text-text-primary">Arrastra la imagen o haz clic para seleccionar</p>
+                      <p class="text-xs text-text-secondary">PNG, JPG o WebP • Máx 5MB</p>
+                    </div>
+                    <button type="button"
+                            (click)="imageInput.click()"
+                            class="mt-2 px-3 py-1.5 bg-primary text-white text-sm rounded hover:opacity-90 transition font-medium">
+                      Seleccionar archivo
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Información de compresión -->
+                <div *ngIf="imageEstimatedSize()" class="mt-2 p-2 bg-blue-500/10 border border-blue-500/30 rounded text-xs text-blue-600">
+                  <p>📊 Tamaño estimado: {{ imageEstimatedSize() }}KB (máx 500KB)</p>
+                </div>
+
+                <!-- Errores de upload -->
+                <div *ngIf="imageUploadError()" class="mt-2 p-2 bg-red-500/10 border border-red-500/30 rounded text-xs text-red-600">
+                  <p>{{ imageUploadError() }}</p>
+                </div>
               </div>
 
               <!-- Error del formulario -->
@@ -261,6 +317,8 @@ export class AdminProductsPage implements OnInit {
   private readonly productService = inject(ProductService);
   private readonly categoryService = inject(CategoryService);
   private readonly subcategoryService = inject(SubcategoryService);
+  private readonly imageUploadService = inject(ImageUploadService);
+  private readonly imageOptimization = inject(ImageOptimizationService);
 
   // ✅ SIGNALS: Estado reactivo desde servicios
   protected readonly isLoading = computed(() => this.productService.loading());
@@ -274,6 +332,14 @@ export class AdminProductsPage implements OnInit {
   protected readonly isSaving = signal(false);
   protected readonly formError = signal<string | null>(null);
   protected readonly loadError = signal<string | null>(null);
+
+  // 📸 Signals para upload de imagen inline
+  protected readonly isImageDragging = signal(false);
+  protected readonly isUploadingImage = signal(false);
+  protected readonly uploadImageProgress = signal(0);
+  protected readonly imageEstimatedSize = signal<number | null>(null);
+  protected readonly imageUploadError = signal<string | null>(null);
+  protected readonly imageInput = viewChild<HTMLInputElement>('imageInput');
 
   // ✅ Productos filtrados
   protected readonly filteredProducts = computed(() => {
@@ -295,18 +361,16 @@ export class AdminProductsPage implements OnInit {
     order: [0, [Validators.required]],
   });
 
-  async ngOnInit(): Promise<void> {
+  ngOnInit(): void {
     this.loadError.set(null);
-    try {
-      await Promise.all([
-        this.productService.loadProducts(),
-        this.categoryService.loadCategories(),
-        this.subcategoryService.loadSubcategories(),
-      ]);
-    } catch (error) {
+    Promise.all([
+      this.productService.loadProducts(),
+      this.categoryService.loadCategories(),
+      this.subcategoryService.loadSubcategories(),
+    ]).catch(error => {
       const msg = error instanceof Error ? error.message : 'Error desconocido';
       this.loadError.set(`Error cargando datos: ${msg}`);
-    }
+    });
   }
 
   protected getSubcategoryName(subcategoryId: number): string {
@@ -391,5 +455,84 @@ export class AdminProductsPage implements OnInit {
   private getNextOrder(): number {
     const maxOrder = Math.max(0, ...this.products().map(p => p.order));
     return maxOrder + 1;
+  }
+
+  // 📸 Métodos para upload inline de imagen
+  protected onImageDragOver(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isImageDragging.set(true);
+  }
+
+  protected onImageDragLeave(): void {
+    this.isImageDragging.set(false);
+  }
+
+  protected onImageDrop(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isImageDragging.set(false);
+
+    const files = event.dataTransfer?.files;
+    if (files && files.length > 0) {
+      this.processImageFile(files[0]);
+    }
+  }
+
+  protected onImageFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      this.processImageFile(input.files[0]);
+    }
+  }
+
+  protected clearImage(): void {
+    this.form.patchValue({ image: '' });
+    this.imageEstimatedSize.set(null);
+    this.imageUploadError.set(null);
+  }
+
+  private async processImageFile(file: File): Promise<void> {
+    this.imageUploadError.set(null);
+
+    // Validar tipo
+    if (!file.type.startsWith('image/')) {
+      this.imageUploadError.set('Por favor selecciona una imagen válida');
+      return;
+    }
+
+    // Validar tamaño pre-compresión
+    const maxSizeBytes = 5 * 1024 * 1024; // 5 MB
+    if (file.size > maxSizeBytes) {
+      this.imageUploadError.set('La imagen no puede superar 5 MB');
+      return;
+    }
+
+    try {
+      // Comprimir imagen
+      const compressedBlob = await this.imageOptimization.optimizeImage(file);
+      const sizeKB = Math.round(compressedBlob.size / 1024);
+      this.imageEstimatedSize.set(sizeKB);
+
+      if (sizeKB > 500) {
+        this.imageUploadError.set(`Imagen comprimida: ${sizeKB}KB (máx recomendado: 500KB)`);
+      }
+
+      // Subir a Supabase
+      this.isUploadingImage.set(true);
+      this.uploadImageProgress.set(0);
+
+      const url = await this.imageUploadService.uploadProductImage(file);
+
+      // Llenar el campo imagen automáticamente
+      this.form.patchValue({ image: url });
+      this.isUploadingImage.set(false);
+      this.uploadImageProgress.set(0);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : 'Error al subir la imagen';
+      this.imageUploadError.set(msg);
+      this.isUploadingImage.set(false);
+      this.uploadImageProgress.set(0);
+    }
   }
 }

@@ -7,23 +7,27 @@
          p-4 w-full flex flex-col items-center text-center cursor-pointer
          transform hover:-translate-y-1 hover:scale-105 duration-300">
 
-  <!-- Imagen -->
-  <div class="w-32 h-32 rounded-xl overflow-hidden shadow-md mb-3">
+  <!-- ✅ Imagen optimizada con lazy loading -->
+  <div class="w-32 h-32 rounded-xl overflow-hidden shadow-md mb-3 bg-text/10">
     <img 
-      [src]="product.image"
-      [alt]="product.name"
-      class="w-full h-full object-cover"
+      [src]="optimizedImage().src"
+      [srcset]="optimizedImage().srcset"
+      [sizes]="optimizedImage().sizes"
+      [alt]="product().name"
+      loading="lazy"
+      decoding="async"
+      class="w-full h-full object-cover transition-opacity duration-300"
     >
   </div>
 
   <!-- Título -->
   <h3 class="text-lg font-semibold text-text tracking-wide" style="color: var(--color-text)">
-    {{ product.name }}
+    {{ product().name }}
   </h3>
 
   <!-- Precio -->
   <p class="text-xl font-bold text-text mt-1" style="color: var(--color-text)">
-    {{ product.price | currency:'COP':'symbol' }}
+    ${{ product().price | number:'1.0-0' }}
   </p>
 
   <!-- Botón -->
