@@ -1,7 +1,7 @@
-import { Component, inject, OnInit, ChangeDetectionStrategy, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { StorageMonitoringService } from '@core/services/storage-monitoring.service';
-import { FormatBytesPipe } from '@core/pipes/format-bytes.pipe';
+import { StorageMonitoringService } from '../../core/services/storage-monitoring.service';
+import { FormatBytesPipe } from '../../core/pipes/format-bytes.pipe';
 
 /**
  * ✅ Widget de indicador de almacenamiento para admin
