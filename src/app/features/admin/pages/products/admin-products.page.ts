@@ -6,6 +6,8 @@ import {
   computed,
   OnInit,
   viewChild,
+  HostListener,
+  effect,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
@@ -244,8 +246,8 @@ import { ImageOptimizationService } from '../../../../core/services/image-optimi
                   </div>
                 </div>
 
-                <!-- Zona Drag-Drop -->
-                <div (dragover)="onImageDragOver($event)"
+                <!-- Zona Drag-Drop (solo en desktop) -->
+                <div *ngIf="!isMobile()" (dragover)="onImageDragOver($event)"
                      (dragleave)="onImageDragLeave()"
                      (drop)="onImageDrop($event)"
                      [ngClass]="{'bg-primary/10': isImageDragging(), 'border-primary': isImageDragging()}"
@@ -273,6 +275,24 @@ import { ImageOptimizationService } from '../../../../core/services/image-optimi
                       Seleccionar archivo
                     </button>
                   </div>
+                </div>
+
+                <!-- Simple button upload (solo en móvil) -->
+                <div *ngIf="isMobile()" class="space-y-2">
+                  <input #imageInput type="file" accept="image/*" hidden
+                         (change)="onImageFileSelected($event)" />
+                  
+                  <button type="button"
+                          (click)="imageInput.click()"
+                          [disabled]="isUploadingImage()"
+                          class="w-full px-4 py-3 bg-primary text-white rounded-lg hover:opacity-90 transition font-medium disabled:opacity-50 flex items-center justify-center gap-2">
+                    <span class="material-icons">{{ isUploadingImage() ? 'hourglass_empty' : 'upload' }}</span>
+                    {{ isUploadingImage() ? 'Subiendo...' : 'Seleccionar imagen' }}
+                  </button>
+
+                  <p class="text-sm text-text-secondary">
+                    {{ isUploadingImage() ? 'Subiendo: ' + uploadImageProgress() + '%' : 'PNG, JPG o WebP • Máx 5MB' }}
+                  </p>
                 </div>
 
                 <!-- Información de compresión -->
@@ -341,6 +361,10 @@ export class AdminProductsPage implements OnInit {
   protected readonly imageUploadError = signal<string | null>(null);
   protected readonly imageInput = viewChild<HTMLInputElement>('imageInput');
 
+  // 📱 Signals para detectar móvil y orientación
+  protected readonly isMobile = signal(this.checkIsMobile());
+  protected readonly isPortrait = signal(this.checkIsPortrait());
+
   // ✅ Productos filtrados
   protected readonly filteredProducts = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
@@ -363,6 +387,8 @@ export class AdminProductsPage implements OnInit {
 
   ngOnInit(): void {
     this.loadError.set(null);
+    
+    // Cargar datos
     Promise.all([
       this.productService.loadProducts(),
       this.categoryService.loadCategories(),
@@ -371,6 +397,41 @@ export class AdminProductsPage implements OnInit {
       const msg = error instanceof Error ? error.message : 'Error desconocido';
       this.loadError.set(`Error cargando datos: ${msg}`);
     });
+
+    // 📱 Detectar cambios de orientación en tiempo real
+    const orientationMedia = globalThis.matchMedia?.('(orientation: portrait)');
+    if (orientationMedia) {
+      orientationMedia.addListener(() => {
+        this.isPortrait.set(orientationMedia.matches);
+      });
+    }
+
+    // 📱 Detectar cambios de tamaño de pantalla (móvil a desktop)
+    const mobileMedia = globalThis.matchMedia?.('(max-width: 768px)');
+    if (mobileMedia) {
+      mobileMedia.addListener(() => {
+        this.isMobile.set(mobileMedia.matches);
+      });
+    }
+  }
+
+  // 📱 Método para detectar si es móvil
+  private checkIsMobile(): boolean {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(max-width: 768px)').matches;
+  }
+
+  // 📱 Método para detectar si está en portrait
+  private checkIsPortrait(): boolean {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(orientation: portrait)').matches;
+  }
+
+  // 📱 Listener para resize
+  @HostListener('window:resize')
+  onResize(): void {
+    this.isMobile.set(this.checkIsMobile());
+    this.isPortrait.set(this.checkIsPortrait());
   }
 
   protected getSubcategoryName(subcategoryId: number): string {
