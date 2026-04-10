@@ -55,13 +55,13 @@ import { FormatBytesPipe } from '../../core/pipes/format-bytes.pipe';
           <div class="stat-item">
             <span class="stat-label">Usado:</span>
             <span class="stat-value">
-              {{ storage.storageStats()?.usedBytes | formatBytes }}
+              {{ (storage.storageStats()?.usedBytes ?? 0) | formatBytes }}
             </span>
           </div>
           <div class="stat-item">
             <span class="stat-label">Límite:</span>
             <span class="stat-value">
-              {{ storage.storageStats()?.limitBytes | formatBytes }}
+              {{ (storage.storageStats()?.limitBytes ?? 0) | formatBytes }}
             </span>
           </div>
           <div class="stat-item">
