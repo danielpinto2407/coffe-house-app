@@ -1,0 +1,75 @@
+<!-- Backdrop -->
+<div 
+  *ngIf="modal.product$ | async as product"
+  class="backdrop fixed inset-0 backdrop-blur-sm z-40"
+  [style.backgroundColor]="'rgba(0, 0, 0, 0.5)'"
+  (click)="!getSelection()?.toString() && modal.close()"
+  (keydown.escape)="modal.close()"
+  role="presentation"
+  tabindex="-1">
+</div>
+
+<!-- Modal -->
+<div 
+  *ngIf="modal.product$ | async as product"
+  class="fixed inset-0 flex items-center justify-center z-50 p-4"
+  role="dialog"
+  aria-modal="true"
+  [attr.aria-label]="'Detalles de ' + product.name">
+
+  <div 
+    class="modal-content rounded-2xl shadow-2xl w-full max-w-md 
+           transform transition-all duration-300"
+    [style.backgroundColor]="'var(--color-surface)'"
+    (click)="$event.stopPropagation()">
+
+    <div class="p-5 overflow-hidden flex flex-col">
+      <!-- Header con botón cerrar -->
+      <div class="flex items-start justify-between mb-4">
+        <h2 class="text-2xl font-bold text-text flex-1">
+          {{ product.name }}
+        </h2>
+        <button 
+          type="button"
+          class="text-2xl text-text-secondary hover:text-text transition"
+          (click)="modal.close()"
+          title="Cerrar (ESC)"
+          aria-label="Cerrar modal">
+          ✕
+        </button>
+      </div>
+
+      <!-- Imagen del producto -->
+      <img 
+        [src]="product.image" 
+        [alt]="product.name"
+        loading="lazy"
+        class="product-image w-full rounded-xl mb-4 shadow-md"
+      >
+
+      <!-- Información del producto -->
+      <div class="space-y-3 flex-1">
+        <p class="text-text-secondary text-sm leading-relaxed">
+          {{ product.description }}
+        </p>
+
+        <p class="text-xl font-bold text-primary">
+          $ {{ product.price | number:'1.0-0' }}
+        </p>
+      </div>
+
+      <!-- Botón de acción (solo Agregar al carrito) -->
+      <div class="mt-6">
+        <button
+          type="button"
+          class="w-full bg-primary text-white py-3 rounded-xl font-semibold
+                hover:bg-primary/90 hover:shadow-lg active:scale-95
+                transition-all duration-200"
+          (click)="onAddToCart(product)"
+          [attr.aria-label]="'Agregar ' + product.name + ' al carrito'">
+          Agregar al carrito
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

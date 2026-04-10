@@ -1,1 +1,54 @@
-<p>menu works!</p>
+<app-search-bar (search)="onSearch($event)"></app-search-bar>
+
+<!-- ✅ Estado de carga mejorado -->
+@if (isLoading()) {
+  <div class="p-4 flex justify-center items-center min-h-screen">
+    <div class="text-lg text-secondary">Cargando menú...</div>
+  </div>
+}
+
+<!-- ✅ Menú renderizado con Signals -->
+@if (!isLoading()) {
+  <div class="p-4">
+    <!-- Sin resultados -->
+    @if (menu().length === 0) {
+      <div class="text-center p-8">
+        <p class="text-secondary text-lg">No se encontraron productos que coincidan con tu búsqueda.</p>
+      </div>
+    }
+
+    <!-- Categorías -->
+    @for (cat of menu(); track cat.id) {
+      <div class="mb-4">
+        <h2 class="text-2xl font-bold text-text mb-3">
+          {{ cat.name }}
+        </h2>
+        <h3 class="font-bold text-text-secondary mb-3">
+          {{ cat.description }}
+        </h3>
+
+        <!-- Subcategorías (solo si tienen productos) -->
+        @for (sub of cat.subcategories; track sub.id) {
+          @if (sub.products.length > 0) {
+            <div class="mb-3">
+              <h3 class="text-xl font-semibold text-text mb-2">
+                {{ sub.name }}
+              </h3>
+
+              <!-- Grid de productos -->
+              <div class="grid gap-8 sm:gap-10"
+                   style="grid-template-columns: repeat(auto-fit, minmax(130px,1fr));">
+
+                @for (prod of sub.products; track prod.id) {
+                  <app-product-card [product]="prod"></app-product-card>
+                }
+
+              </div>
+            </div>
+          }
+        }
+      </div>
+    }
+
+  </div>
+}
