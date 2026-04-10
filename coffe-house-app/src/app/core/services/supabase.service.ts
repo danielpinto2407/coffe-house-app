@@ -163,4 +163,145 @@ export class SupabaseService {
       throw new Error(`No se pudo obtener URL: ${errorMsg}`);
     }
   }
+
+  /**
+   * Realiza una consulta genérica a una tabla
+   * @param tableName - Nombre de la tabla
+   * @param options - Opciones de filtrado, ordenamiento, etc.
+   * @returns Array de registros o null si hay error
+   */
+  async query<T>(tableName: string, options?: {
+    order?: Array<{ column: string; ascending: boolean }>;
+    filters?: Array<{ column: string; operator: string; value: any }>;
+    limit?: number;
+  }): Promise<T[] | null> {
+    try {
+      let query = this.supabase.from(tableName).select('*');
+
+      // Aplicar filtros si existen
+      if (options?.filters) {
+        for (const filter of options.filters) {
+          if (filter.operator === 'eq') {
+            query = query.eq(filter.column, filter.value);
+          } else if (filter.operator === 'gte') {
+            query = query.gte(filter.column, filter.value);
+          } else if (filter.operator === 'lte') {
+            query = query.lte(filter.column, filter.value);
+          }
+        }
+      }
+
+      // Aplicar ordenamiento
+      if (options?.order) {
+        for (const orderBy of options.order) {
+          query = query.order(orderBy.column, { ascending: orderBy.ascending });
+        }
+      }
+
+      // Aplicar limite
+      if (options?.limit) {
+        query = query.limit(options.limit);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        throw new Error(`Query error: ${error.message}`);
+      }
+
+      return data as T[] | null;
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Error desconocido';
+      console.error(`[SupabaseService] Query error in ${tableName}:`, errorMsg);
+      throw new Error(errorMsg);
+    }
+  }
+
+  /**
+   * Inserta un nuevo registro en una tabla
+   * @param tableName - Nombre de la tabla
+   * @param data - Datos a insertar
+   * @returns Registro insertado
+   */
+  async insert<T>(tableName: string, data: any): Promise<T> {
+    try {
+      const { data: inserted, error } = await this.supabase
+        .from(tableName)
+        .insert([data])
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(`Insert error: ${error.message}`);
+      }
+
+      if (!inserted) {
+        throw new Error('No se retornó el registro insertado');
+      }
+
+      console.log(`✅ Registro insertado en ${tableName}:`, inserted);
+      return inserted as T;
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Error desconocido';
+      console.error(`[SupabaseService] Insert error in ${tableName}:`, errorMsg);
+      throw new Error(errorMsg);
+    }
+  }
+
+  /**
+   * Actualiza un registro en una tabla
+   * @param tableName - Nombre de la tabla
+   * @param id - ID del registro
+   * @param updates - Campos a actualizar
+   * @returns Registro actualizado
+   */
+  async update<T>(tableName: string, id: number, updates: any): Promise<T> {
+    try {
+      const { data: updated, error } = await this.supabase
+        .from(tableName)
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(`Update error: ${error.message}`);
+      }
+
+      if (!updated) {
+        throw new Error('No se retornó el registro actualizado');
+      }
+
+      console.log(`✅ Registro ${id} actualizado en ${tableName}:`, updated);
+      return updated as T;
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Error desconocido';
+      console.error(`[SupabaseService] Update error in ${tableName}:`, errorMsg);
+      throw new Error(errorMsg);
+    }
+  }
+
+  /**
+   * Elimina un registro de una tabla
+   * @param tableName - Nombre de la tabla
+   * @param id - ID del registro
+   */
+  async delete(tableName: string, id: number): Promise<void> {
+    try {
+      const { error } = await this.supabase
+        .from(tableName)
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        throw new Error(`Delete error: ${error.message}`);
+      }
+
+      console.log(`✅ Registro ${id} eliminado de ${tableName}`);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Error desconocido';
+      console.error(`[SupabaseService] Delete error in ${tableName}:`, errorMsg);
+      throw new Error(errorMsg);
+    }
+  }
 }
