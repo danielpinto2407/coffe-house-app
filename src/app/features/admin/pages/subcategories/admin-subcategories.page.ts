@@ -166,7 +166,7 @@ import { ProductService } from '../../../menu/services/product.service';
       <!-- Modal: Formulario de subcategoría -->
       @if (showForm()) {
         <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div class="bg-background rounded-lg shadow-lg max-w-2xl w-full max-h-screen overflow-y-auto">
+          <div class="bg-surface rounded-lg shadow-lg max-w-2xl w-full max-h-screen overflow-y-auto">
             
             <!-- Header -->
             <div class="flex items-center justify-between p-6 border-b border-surface">
