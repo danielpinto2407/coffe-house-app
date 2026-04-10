@@ -1,25 +1,18 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-
-export interface ProductData {
-  id: number;
-  name: string;
-  price: number;
-  description?: string;
-  image?: string;
-}
+import { Product } from '../../features/menu/models/product.model';
 
 @Injectable({ providedIn: 'root' })
 export class ProductModalService {
 
-  private productSubject = new BehaviorSubject<ProductData | null>(null);
-  product$ = this.productSubject.asObservable();
+  private readonly productSubject = new BehaviorSubject<Product | null>(null);
+  readonly product$ = this.productSubject.asObservable();
 
-  open(product: ProductData) {
+  open(product: Product): void {
     this.productSubject.next(product);
   }
 
-  close() {
+  close(): void {
     this.productSubject.next(null);
   }
 }

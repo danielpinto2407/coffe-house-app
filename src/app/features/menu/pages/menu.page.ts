@@ -1,60 +1,84 @@
-import { Component, OnInit, signal, computed, inject, DestroyRef } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, DestroyRef, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { debounceTime, Subject } from 'rxjs';
+import { debounceTime, Subject, switchMap, tap, shareReplay } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ProductCardComponent } from '../../../shared/product-card/product-card.component';
 import { SearchBarComponent } from '../../../shared/components/search-bar/search-bar.component';
+import { QrModalComponent } from '../../../overlays/qr-modal/qr-modal.component';
 import { MenuApiService } from '../services/menu-api.service';
+import { MenuPdfService } from '../services/menu-pdf.service';
+import { MenuPdfStateService } from '../services/menu-pdf-state.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { MenuStructure } from '../models/menu-structure.model';
 
 @Component({
   selector: 'app-menu',
   standalone: true,
-  imports: [CommonModule, ProductCardComponent, SearchBarComponent, FormsModule],
+  imports: [CommonModule, ProductCardComponent, SearchBarComponent, QrModalComponent],
   templateUrl: './menu.page.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MenuPage implements OnInit {
   private readonly menuApi = inject(MenuApiService);
+  private readonly menuPdf = inject(MenuPdfService);
+  protected readonly menuPdfState = inject(MenuPdfStateService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly auth = inject(AuthService);
 
   // ✅ SIGNALS: Estado reactivo moderno
-  fullMenu = signal<MenuStructure[]>([]);
-  searchTerm = signal('');
-  isLoading = signal(true);
+  protected readonly fullMenu = signal<MenuStructure[]>([]);
+  protected readonly isLoading = signal(true);
+
+  // ✅ Auth: Verificar si es admin
+  protected readonly isAdmin = computed(() => this.auth.isAdmin());
+
+  // ✅ Estado del PDF
+  protected readonly isGeneratingPdf = computed(() => this.menuPdf.isGenerating());
+
+  // ✅ Estado del Modal QR
+  protected readonly isQrModalOpen = signal(false);
+  protected readonly qrCode = computed(() => this.menuPdfState.qrCode());
+  protected readonly pdfUrl = computed(() => this.menuPdfState.pdfUrl());
+  protected readonly isLoadingQr = computed(() => this.menuPdfState.isLoadingQr());
+  protected readonly qrError = computed(() => this.menuPdfState.error());
 
   // ✅ COMPUTED: Menú filtrado calculado reactivamente
-  menu = computed(() => {
-    const term = this.searchTerm();
-    if (!term.trim()) {
-      return this.fullMenu();
-    }
-    return this.filterMenu(this.fullMenu(), term);
-  });
+  protected readonly menu = computed(() => this.fullMenu());
 
   // ✅ Debounce para búsqueda (evita filtros excesivos)
   private readonly searchSubject = new Subject<string>();
 
+  /**
+   * ✅ Observable: Emisión del menú filtrado/completo reactivamente
+   * Usa switchMap para cambiar entre búsquedas y cargar menú completo
+   * SharedReplay para cachear último resultado
+   */
+  private readonly filteredMenu$ = this.searchSubject.pipe(
+    debounceTime(300),
+    tap(() => this.isLoading.set(true)),
+    switchMap((term: string) => {
+      if (!term?.trim()) {
+        return this.menuApi.getFullMenu();
+      }
+      return this.menuApi.searchMenu(term);
+    }),
+    tap((menu: MenuStructure[]) => {
+      this.fullMenu.set(menu);
+      this.isLoading.set(false);
+    }),
+    shareReplay(1),
+    takeUntilDestroyed(this.destroyRef)
+  );
+
   constructor() {
-    // ✅ Desuscripción automática cuando el componente se destruye
-    this.searchSubject
-      .pipe(
-        debounceTime(300), // Espera 300ms después de que el usuario deje de escribir
-        takeUntilDestroyed(this.destroyRef)
-      )
-      .subscribe((term: string) => {
-        this.searchTerm.set(term);
-      });
+    // ✅ Suscribirse al observable para inicializar el flujo reactivo
+    this.filteredMenu$.subscribe();
   }
 
   ngOnInit(): void {
-    this.isLoading.set(true);
-    this.menuApi.getFullMenu()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((menu: MenuStructure[]) => {
-        this.fullMenu.set(menu);
-        this.isLoading.set(false);
-      });
+    // ✅ Emitir un término vacío para cargar el menú completo inicial
+    // Esto evita una doble llamada API (vs hacerlo en ngOnInit)
+    this.searchSubject.next('');
   }
 
   /**
@@ -66,33 +90,64 @@ export class MenuPage implements OnInit {
   }
 
   /**
-   * ✅ Filtrado profundo: mantiene estructura jerárquica
-   * Solo retorna categorías y subcategorías que tienen productos que coinciden
+   * ✅ Genera el PDF del menú y lo sube a Supabase
+   * Orquesta: generación de PDF → carga a Supabase → generación de QR
+   * Solo permitido para usuarios con rol admin
    */
-  private filterMenu(menu: MenuStructure[], searchTerm: string): MenuStructure[] {
-    const term = searchTerm.toLowerCase().trim();
+  async onGenerateMenuPdf(): Promise<void> {
+    // ✅ Validar que solo admin pueda hacerlo
+    if (!this.auth.isAdmin()) {
+      console.warn('⚠️ Solo administradores pueden generar el menú');
+      return;
+    }
 
-    return menu
-      .map(category => ({
-        ...category,
-        subcategories: category.subcategories
-          .map(subcategory => ({
-            ...subcategory,
-            products: subcategory.products.filter(product =>
-              this.productMatches(product, term)
-            )
-          }))
-          .filter(subcategory => subcategory.products.length > 0)
-      }))
-      .filter(category => category.subcategories.length > 0);
+    try {
+      const menuData = this.fullMenu();
+      
+      if (!menuData?.length) {
+        console.warn('⚠️ No hay menú disponible para generar');
+        return;
+      }
+
+      console.log('⏳ Generando PDF del menú...');
+      const pdfBlob = await this.menuPdf.generateMenuPdfBlob(menuData);
+      
+      if (!pdfBlob?.size) {
+        throw new Error('PDF generado está vacío');
+      }
+
+      console.log('📤 Subiendo PDF a Supabase y generando QR...');
+      await this.menuPdfState.uploadPdfAndGenerateQr(pdfBlob);
+      console.log('✅ PDF cargado y QR generado exitosamente');
+      
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
+      console.error('❌ Error al generar PDF:', errorMsg);
+      // TODO: Mostrar notificación visual al usuario (toast/snackbar)
+    }
   }
 
   /**
-   * Helper: valida si un producto coincide con el término de búsqueda
+   * ✅ Visualiza el menú mostrando el QR del PDF existente en Supabase
+   * Si existe un PDF previo, lo carga y genera el QR
+   * Si no existe, muestra un mensaje indicando que debe generarlo primero
    */
-  private productMatches(product: any, term: string): boolean {
-    const name = product.name?.toLowerCase() || '';
-    const desc = product.description?.toLowerCase() || '';
-    return name.includes(term) || desc.includes(term);
+  async onViewMenuQr(): Promise<void> {
+    try {
+      await this.menuPdfState.loadExistingPdfAndQr();
+      this.isQrModalOpen.set(true);
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
+      // Error already handled by menuPdfState.error signal
+      return;
+    }
+  }
+
+  /**
+   * ✅ Cierra el modal QR
+   */
+  closeQrModal(): void {
+    this.isQrModalOpen.set(false);
   }
 }
+

@@ -4,10 +4,21 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: "#3b2f2f",    // café oscuro
-        secondary: "#d4a373",  // marrón claro
-        tertiary: "#ffedd5",   // crema
-        accent: "#ffe082",     // dorado suave
+        // Colores dinámicos vinculados a variables CSS
+        primary: "var(--color-primary)",
+        secondary: "var(--color-secondary)",
+        tertiary: "var(--color-tertiary)",
+        accent: "var(--color-accent)",
+        text: "var(--color-text)",
+        "text-secondary": "var(--color-text-secondary)",
+        background: "var(--color-background)",
+        "background-light": "var(--color-background-light)",
+        surface: "var(--color-surface)",
+        border: "var(--color-border)",
+        success: "var(--color-success)",
+        warning: "var(--color-warning)",
+        error: "var(--color-error)",
+        hover: "var(--color-hover)",
       },
     },
   },

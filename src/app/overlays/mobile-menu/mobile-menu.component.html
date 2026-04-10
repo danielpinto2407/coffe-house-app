@@ -1,13 +1,17 @@
 <!-- OVERLAY -->
-<div *ngIf="isOpen"
-     class="fixed inset-0 bg-black/50 z-40"
-     (click)="close()">
-</div>
+@if (isOpen()) {
+  <div class="fixed inset-0 bg-black/75 z-40"
+       (click)="close()"
+       (keydown.escape)="close()"
+       role="presentation"
+       tabindex="-1">
+  </div>
+}
 
 <!-- DRAWER -->
 <div class="fixed top-0 right-0 w-64 h-full bg-primary text-white shadow-xl z-50 p-5
             transform transition-transform duration-300 flex flex-col"
-     [class.translate-x-full]="!isOpen">
+     [class.translate-x-full]="!isOpen()">
 
   <!-- BOTÓN PARA CERRAR -->
   <button class="self-end mb-4 p-2 rounded-full hover:bg-white/20 transition"
@@ -19,21 +23,16 @@
 
   <div class="flex flex-col gap-4">
 
-    <!-- NO autenticado -->
-    <ng-container *ngIf="!isLoggedIn">
-      <button class="w-full bg-secondary text-primary px-4 py-2 rounded-lg font-semibold hover:bg-tertiary transition"
-              (click)="close()">
-        Iniciar sesión
-      </button>
-
-      <button class="w-full bg-accent text-black px-4 py-2 rounded-lg font-semibold hover:bg-accent/80 transition"
-              (click)="close()">
-        Registrarse
-      </button>
-    </ng-container>
-
     <!-- SÍ autenticado -->
-    <ng-container *ngIf="isLoggedIn">
+    @if (isLoggedIn()) {
+      @if (isAdmin()) {
+        <a [routerLink]="['/admin']" (click)="close()"
+           class="w-full flex items-center gap-2 bg-secondary/40 text-white px-4 py-2 rounded-lg hover:bg-secondary/60 transition">
+          <span class="material-icons text-lg">admin_panel_settings</span>
+          Panel de Admin
+        </a>
+      }
+
       <button class="w-full flex items-center gap-2 bg-secondary text-primary px-4 py-2 rounded-lg hover:bg-tertiary transition"
               (click)="close()">
         <span class="material-icons">account_circle</span>
@@ -45,7 +44,7 @@
         <span class="material-icons">logout</span>
         Cerrar sesión
       </button>
-    </ng-container>
+    }
 
   </div>
 

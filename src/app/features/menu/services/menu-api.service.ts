@@ -21,25 +21,26 @@ export class MenuApiService {
   getFullMenu(): Observable<MenuStructure[]> {
     this.fullMenu$ ??= of(CATEGORIES).pipe(
       map(categories => {
-          // Construir índice de búsqueda una sola vez
-          if (this.searchIndex.length === 0) {
-            this.buildSearchIndex(categories);
-          }
-          return this.buildMenuStructure(categories);
-        }),
-        shareReplay(1) // ✅ Cache: recalcula solo en la primera suscripción
-      );
+        // Construir índice de búsqueda una sola vez
+        if (this.searchIndex.length === 0) {
+          this.buildSearchIndex(categories);
+        }
+        return this.buildMenuStructure(categories);
+      }),
+      shareReplay(1) // ✅ Cache: recalcula solo en la primera suscripción
+    );
     return this.fullMenu$;
   }
 
   /**
    * ✅ Búsqueda eficiente en el índice
    * Retorna categorías y subcategorías que contienen resultados
+   * Centraliza toda la lógica de filtrado
    */
   searchMenu(searchTerm: string): Observable<MenuStructure[]> {
     return this.getFullMenu().pipe(
       map(menu => {
-        if (!searchTerm.trim()) {
+        if (!searchTerm?.trim()) {
           return menu; // Retorna menú completo si searchTerm está vacío
         }
 
@@ -68,7 +69,7 @@ export class MenuApiService {
   /**
    * Construye la estructura jerárquica del menú
    */
-  private buildMenuStructure(categories: typeof CATEGORIES) {
+  private buildMenuStructure(categories: typeof CATEGORIES): MenuStructure[] {
     return categories
       .map((category: typeof CATEGORIES[0]) => ({
         ...category,
@@ -77,7 +78,7 @@ export class MenuApiService {
           .map((sub: typeof SUBCATEGORIES[0]) => ({
             ...sub,
             products: PRODUCTS
-              .filter((p: typeof PRODUCTS[0]) => p.subcategoryId === sub.id)  
+              .filter((p: typeof PRODUCTS[0]) => p.subcategoryId === sub.id)
           }))
       }))
       .sort((a, b) => a.order - b.order);
@@ -86,7 +87,7 @@ export class MenuApiService {
   /**
    * Crea un índice plano para búsquedas rápidas
    */
-  private buildSearchIndex(categories: typeof CATEGORIES) {
+  private buildSearchIndex(categories: typeof CATEGORIES): void {
     this.searchIndex = PRODUCTS.map(product => {
       const sub = SUBCATEGORIES.find(s => s.id === product.subcategoryId);
       const cat = CATEGORIES.find(c => c.id === sub?.categoryId);
@@ -118,3 +119,4 @@ export class MenuApiService {
       .filter(cat => cat.subcategories.length > 0);
   }
 }
+

@@ -1,4 +1,0 @@
-0000000000000000000000000000000000000000 78719468a41000e506055db0e7e814e1d5dd713e Daniel <wdpinto@utp.edu.co> 1764605725 -0500	commit (initial): initial commit
-78719468a41000e506055db0e7e814e1d5dd713e dd743232c21168a002e1d61260b9221ce2e465b6 Daniel <wdpinto@utp.edu.co> 1764606568 -0500	commit: (feature): Commit inicial con estructura del proyecto
-dd743232c21168a002e1d61260b9221ce2e465b6 dd743232c21168a002e1d61260b9221ce2e465b6 Daniel <wdpinto@utp.edu.co> 1764606575 -0500	Branch: renamed refs/heads/master to refs/heads/main
-dd743232c21168a002e1d61260b9221ce2e465b6 52d533878d7a64cf696fb3a7e55c17773582e79d Daniel <wdpinto@utp.edu.co> 1764781178 -0500	commit: 8feature): Funcionalidad de menu con overlays de cuenta, detalle producto y carrito funcionando

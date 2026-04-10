@@ -1,5 +1,37 @@
 <app-search-bar (search)="onSearch($event)"></app-search-bar>
 
+<!-- ✅ Botones de acciones del menú -->
+<div class="p-4 flex justify-end gap-3">
+  <!-- Botón: Generar Menú (solo admin) - genera PDF y sube a Supabase -->
+  <button
+    *ngIf="isAdmin()"
+    type="button"
+    (click)="onGenerateMenuPdf()"
+    [disabled]="isGeneratingPdf()"
+    class="flex items-center gap-2 bg-secondary text-primary px-4 py-2 rounded-lg font-medium
+           hover:bg-accent transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+    [attr.aria-label]="isGeneratingPdf() ? 'Generando menú...' : 'Generar menú'">
+    <span class="material-icons" [style.fontSize.px]="18" aria-hidden="true">
+      {{ isGeneratingPdf() ? 'hourglass_empty' : 'save' }}
+    </span>
+    {{ isGeneratingPdf() ? 'Generando...' : 'Generar Menú' }}
+  </button>
+
+  <!-- Botón: Visualizar Menú (muestra QR del PDF en Supabase) -->
+  <button
+    type="button"
+    (click)="onViewMenuQr()"
+    [disabled]="isLoadingQr()"
+    class="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg font-medium
+           hover:bg-accent transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+    [attr.aria-label]="isLoadingQr() ? 'Generando QR...' : 'Ver menú QR'">
+    <span class="material-icons" [style.fontSize.px]="18" aria-hidden="true">
+      {{ isLoadingQr() ? 'hourglass_empty' : 'qr_code_2' }}
+    </span>
+    {{ isLoadingQr() ? 'Generando QR...' : 'Visualizar Menú' }}
+  </button>
+</div>
+
 <!-- ✅ Estado de carga mejorado -->
 <div *ngIf="isLoading()" class="p-4 flex justify-center items-center min-h-screen">
   <div class="text-lg text-secondary">Cargando menú...</div>
@@ -14,10 +46,10 @@
 
   <!-- Categorías -->
   <div *ngFor="let cat of menu()" class="mb-4">
-    <h2 class="text-2xl font-bold text-primary mb-3">
+    <h2 class="text-2xl font-bold text-text mb-3">
       {{ cat.name }}
     </h2>
-    <h3 class="font-bold text-secondary mb-3">
+    <h3 class="font-bold text-text-secondary mb-3">
       {{ cat.description }}
     </h3>
 
@@ -25,7 +57,7 @@
     <div *ngFor="let sub of cat.subcategories" class="mb-3">
       <!-- 🔧 Solo mostrar subcategoría si tiene productos -->
       <ng-container *ngIf="sub.products.length > 0">
-        <h3 class="text-xl font-semibold text-secondary mb-2">
+        <h3 class="text-xl font-semibold text-text mb-2">
           {{ sub.name }}
         </h3>
 
@@ -44,3 +76,12 @@
   </div>
 
 </div>
+<!-- ✅ Modal QR para visualizar el menú -->
+<app-qr-modal
+  [isOpen]="isQrModalOpen()"
+  [qrCode]="qrCode()"
+  [pdfUrl]="pdfUrl()"
+  [isLoading]="isLoadingQr()"
+  [error]="qrError()"
+  (closed)="closeQrModal()">
+</app-qr-modal>

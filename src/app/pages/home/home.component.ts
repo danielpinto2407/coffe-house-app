@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { ProductCardComponent } from '../../shared/product-card/product-card.component';
 
 @Component({
@@ -6,6 +6,7 @@ import { ProductCardComponent } from '../../shared/product-card/product-card.com
   standalone: true,
   imports: [ProductCardComponent], 
   templateUrl: './home.component.html',
-  styleUrls: ['./home.component.scss']
+  styleUrls: ['./home.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HomeComponent {}

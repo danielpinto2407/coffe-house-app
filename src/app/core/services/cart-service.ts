@@ -12,18 +12,18 @@ export class CartService {
   private readonly doc = inject(DOCUMENT);
 
   private readonly itemsSubject = new BehaviorSubject<CartItem[]>(this.loadFromStorage());
-  items$ = this.itemsSubject.asObservable();
+  readonly items$ = this.itemsSubject.asObservable();
 
-  // Overlay control (open/close) — para que el componente use cart.open$ y cart.close()
+  // Overlay control
   private readonly openSubject = new BehaviorSubject<boolean>(false);
-  open$ = this.openSubject.asObservable();
+  readonly open$ = this.openSubject.asObservable();
 
-  // Derived observables
-  total$: Observable<number> = this.items$.pipe(
+  // ✅ Derived observables
+  readonly total$: Observable<number> = this.items$.pipe(
     map(items => this.computeTotal(items))
   );
 
-  count$: Observable<number> = this.items$.pipe(
+  readonly count$: Observable<number> = this.items$.pipe(
     map(items => this.computeCount(items))
   );
 
@@ -41,9 +41,8 @@ export class CartService {
       if (!raw) return [];
 
       const parsed: CartItem[] = JSON.parse(raw);
-      return parsed.map(p => ({ product: p.product, qty: Number(p.qty) || 1 }));
+      return parsed.map(p => ({ product: p.product, qty: Math.max(1, Number(p.qty) || 1) }));
     } catch (e) {
-      console.warn('⚠️ Cart load error (SSR-safe):', e);
       return [];
     }
   }
@@ -58,7 +57,7 @@ export class CartService {
       }
       globalThis.window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
     } catch (e) {
-      console.warn('⚠️ Cart save error (SSR-safe):', e);
+      // localStorage error - continue
     }
   }
 
@@ -72,60 +71,91 @@ export class CartService {
 
   // ========== PUBLIC API ==========
 
+  /**
+   * Obtiene snapshot actual del carrito
+   */
   getItemsSnapshot(): CartItem[] {
     return this.itemsSubject.value;
   }
 
-  addProduct(product: Product, qty = 1): void {
-    if (!product) return;
+  /**
+   * Añade producto al carrito o incrementa cantidad si ya existe
+   */
+  addProduct(product: Product | null | undefined, qty = 1): void {
+    if (!product?.id || qty <= 0) return;
+
     const items = [...this.itemsSubject.value];
     const idx = items.findIndex(it => it.product.id === product.id);
+
     if (idx >= 0) {
       items[idx].qty += qty;
     } else {
       items.push({ product, qty });
     }
+
     this.itemsSubject.next(items);
     this.saveToStorage(items);
   }
 
-  setQuantity(productId: number, qty: number): void {
-    if (qty <= 0) {
+  /**
+   * ✅ CENTRAL: Método unificado para actualizar cantidad
+   * Es el punto de entrada para todas las modificaciones de cantidad
+   */
+  private updateQuantity(productId: number, qty: number): void {
+    if (qty < 0) {
+      return;
+    }
+
+    if (qty === 0) {
       this.removeProduct(productId);
       return;
     }
+
     const items = this.itemsSubject.value.map(it =>
       it.product.id === productId ? { ...it, qty } : it
     );
+
     this.itemsSubject.next(items);
     this.saveToStorage(items);
   }
 
+  /**
+   * Establece cantidad específica para un producto
+   */
+  setQuantity(productId: number, qty: number): void {
+    this.updateQuantity(productId, qty);
+  }
+
+  /**
+   * Incrementa cantidad de un producto
+   */
   increase(productId: number, amount = 1): void {
-    const items = this.itemsSubject.value.map(it =>
-      it.product.id === productId ? { ...it, qty: it.qty + amount } : it
-    );
-    this.itemsSubject.next(items);
-    this.saveToStorage(items);
+    const current = this.itemsSubject.value.find(it => it.product.id === productId);
+    if (!current) return;
+    this.updateQuantity(productId, current.qty + amount);
   }
 
+  /**
+   * Decrementa cantidad de un producto
+   */
   decrease(productId: number, amount = 1): void {
     const current = this.itemsSubject.value.find(it => it.product.id === productId);
     if (!current) return;
-    const newQty = current.qty - amount;
-    if (newQty <= 0) {
-      this.removeProduct(productId);
-      return;
-    }
-    this.setQuantity(productId, newQty);
+    this.updateQuantity(productId, current.qty - amount);
   }
 
+  /**
+   * Elimina producto del carrito
+   */
   removeProduct(productId: number): void {
     const items = this.itemsSubject.value.filter(it => it.product.id !== productId);
     this.itemsSubject.next(items);
     this.saveToStorage(items);
   }
 
+  /**
+   * Vacía el carrito completamente
+   */
   clear(): void {
     this.itemsSubject.next([]);
     try {
@@ -133,28 +163,41 @@ export class CartService {
         globalThis.window.localStorage.removeItem(STORAGE_KEY);
       }
     } catch (e) {
-      console.warn('⚠️ Cart clear error:', e);
+      // localStorage error - continue
     }
   }
 
   /**
-   * Useful for checkout: return a serializable payload
+   * Retorna payload serializable para checkout
    */
-  buildCheckoutPayload() {
-    return this.itemsSubject.value.map(it => ({ productId: it.product.id, qty: it.qty }));
+  buildCheckoutPayload(): Array<{ productId: number; qty: number }> {
+    return this.itemsSubject.value.map(it => ({
+      productId: it.product.id,
+      qty: it.qty
+    }));
   }
 
   // ============= OVERLAY CONTROL =============
 
+  /**
+   * Abre el overlay del carrito
+   */
   open(): void {
     this.openSubject.next(true);
   }
 
+  /**
+   * Cierra el overlay del carrito
+   */
   close(): void {
     this.openSubject.next(false);
   }
 
+  /**
+   * Alterna visibilidad del overlay
+   */
   toggle(): void {
     this.openSubject.next(!this.openSubject.value);
   }
 }
+

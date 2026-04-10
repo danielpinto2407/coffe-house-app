@@ -1,6 +1,9 @@
 <div
   (click)="openProduct()"
-  class="bg-white rounded-2xl shadow-md hover:shadow-xl transition 
+  (keydown.enter)="openProduct()"
+  tabindex="0"
+  [style.backgroundColor]="'var(--color-surface)'"
+  class="rounded-2xl shadow-md hover:shadow-xl transition 
          p-4 w-full flex flex-col items-center text-center cursor-pointer
          transform hover:-translate-y-1 hover:scale-105 duration-300">
 
@@ -14,20 +17,22 @@
   </div>
 
   <!-- Título -->
-  <h3 class="text-lg font-semibold text-primary tracking-wide">
+  <h3 class="text-lg font-semibold text-text tracking-wide" style="color: var(--color-text)">
     {{ product.name }}
   </h3>
 
   <!-- Precio -->
-  <p class="text-xl font-bold text-secondary mt-1">
+  <p class="text-xl font-bold text-text mt-1" style="color: var(--color-text)">
     {{ product.price | currency:'COP':'symbol' }}
   </p>
 
   <!-- Botón -->
   <button
     (click)="addToCart($event)"
-    class="mt-4 w-full bg-primary text-white font-medium px-4 py-2 rounded-xl 
-           hover:bg-secondary transition">
+    [style.backgroundColor]="'var(--color-primary)'"
+    [style]="{'--color-hover': 'var(--color-tertiary)'}"
+    class="mt-4 w-full text-white font-medium px-4 py-2 rounded-xl 
+           hover:brightness-90 transition">
     Agregar al carrito
   </button>
 

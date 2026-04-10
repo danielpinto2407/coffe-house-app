@@ -1,21 +1,24 @@
-import { CommonModule } from '@angular/common';
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
+import { RouterLink } from '@angular/router';
 
-@Component({ 
+@Component({
   selector: 'app-mobile-menu',
   standalone: true,
   templateUrl: './mobile-menu.component.html',
-  imports: [CommonModule],
+  imports: [RouterLink],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MobileMenuComponent {
+  // ✅ input() signal API — Angular 17+ moderno, compatible con OnPush
+  readonly isOpen = input(false);
+  readonly isLoggedIn = input(false);
+  readonly isAdmin = input(false);
 
-  @Input() isOpen = false;
-  @Input() isLoggedIn = false;
+  // ✅ output() signal API — reemplaza EventEmitter
+  readonly closed = output<void>();
+  readonly logout = output<void>();
 
-  @Output() closed = new EventEmitter<void>();
-  @Output() logout = new EventEmitter<void>();
-
-  close() {
+  close(): void {
     this.closed.emit();
   }
 }

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -12,7 +12,8 @@ import { CommonModule } from '@angular/common';
       placeholder="Buscar..."
       (input)="onInput($event)"
     />
-  `
+  `,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SearchBarComponent {
 

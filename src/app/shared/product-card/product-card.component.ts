@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy, inject } from '@angular/core';
 import { ProductModalService } from '../../core/services/product-modal.service';
 import { Product } from '../../features/menu/models/product.model';
 import { CommonModule } from '@angular/common';
@@ -8,26 +8,31 @@ import { CartService } from '../../core/services/cart-service';
   selector: 'app-product-card',
   standalone: true,
   templateUrl: './product-card.component.html',
-  imports: [CommonModule]
+  imports: [CommonModule],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProductCardComponent {
 
   @Input() product!: Product;
 
-  constructor(
-    private modal: ProductModalService,
-    private cart: CartService
-  ) {}
+  private readonly modal = inject(ProductModalService);
+  protected readonly cart = inject(CartService);
 
   openProduct(): void {
+    if (!this.product?.id) {
+      return;
+    }
     this.modal.open(this.product);
   }
 
-  addToCart(event: Event) {
+  addToCart(event: Event): void {
     event.stopPropagation(); // no abrir modal
 
-    this.cart.addProduct(this.product, 1);
+    if (!this.product?.id) {
+      return;
+    }
 
+    this.cart.addProduct(this.product, 1);
     this.cart.open(); // abre overlay si quieres
   }
 }
