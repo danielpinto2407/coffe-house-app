@@ -2,6 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { SupabaseService } from './supabase.service';
 import { ImageOptimizationService } from './image-optimization.service';
 import { NotificationService } from './notification.service';
+import { StorageMonitoringService } from './storage-monitoring.service';
 
 /**
  * ✅ Interfaz para progreso de carga
@@ -20,6 +21,7 @@ export class ImageUploadService {
   private readonly supabase = inject(SupabaseService);
   private readonly imageOpt = inject(ImageOptimizationService);
   private readonly notification = inject(NotificationService);
+  private readonly storageMonitoring = inject(StorageMonitoringService);
 
   private readonly BUCKET_NAME = 'menu';
   private readonly UPLOAD_FOLDER = 'products'; // Subfolder: products/
@@ -31,7 +33,7 @@ export class ImageUploadService {
    * ✅ Sube una imagen optimizada a Supabase Storage
    * 
    * Flujo:
-   * 1. Validar archivo
+   * 1. Validar almacenamiento disponible
    * 2. Comprimir imagen
    * 3. Subir a Supabase
    * 4. Retornar URL pública
@@ -45,11 +47,29 @@ export class ImageUploadService {
     
     this.uploading.set({
       fileName,
-      progress: 10,
+      progress: 5,
       isUploading: true,
     });
 
     try {
+      // -1️⃣ VALIDAR ALMACENAMIENTO
+      this.uploading.update(prev => prev ? { ...prev, progress: 10 } : null);
+      
+      const hasSpace = await this.storageMonitoring.validateSpaceAvailable(file.size);
+      if (!hasSpace) {
+        throw new Error(
+          '❌ No hay espacio de almacenamiento disponible. ' +
+          'Se ha alcanzado el límite de 1GB. Elimina imágenes antiguas o actualiza tu plan.'
+        );
+      }
+
+      // ⚠️ COMPROBAR LÍMITE (80%)
+      const stats = await this.storageMonitoring.getStorageStats();
+      const warning = this.storageMonitoring.getStorageWarning();
+      if (warning) {
+        this.notification.warning(warning);
+      }
+
       // 1️⃣ OPTIMIZAR IMAGEN
       this.uploading.update(prev => prev ? { ...prev, progress: 30 } : null);
       const compressedBlob = await this.imageOpt.optimizeImage(file);

@@ -18,14 +18,20 @@ import { CategoryService } from '../../../menu/services/category.service';
 import { SubcategoryService } from '../../../menu/services/subcategory.service';
 import { ImageUploadService } from '../../../../core/services/image-upload.service';
 import { ImageOptimizationService } from '../../../../core/services/image-optimization.service';
+import { StorageIndicatorComponent } from '../../components/storage-indicator/storage-indicator.component';
 
 @Component({
   selector: 'app-admin-products',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, StorageIndicatorComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="min-h-screen bg-background p-6">
+
+      <!-- Dashboard de almacenamiento -->
+      <div class="mb-8">
+        <app-storage-indicator></app-storage-indicator>
+      </div>
 
       <!-- ✅ Error de carga global -->
       @if (loadError()) {
