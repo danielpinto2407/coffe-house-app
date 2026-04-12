@@ -9,56 +9,81 @@
 }
 
 <!-- DRAWER -->
-<div class="fixed top-0 right-0 w-64 h-full bg-primary text-white shadow-xl z-50 p-5
-            transform transition-transform duration-300 flex flex-col"
+<div class="fixed top-0 right-0 w-64 h-full bg-primary text-white shadow-xl z-50 p-5 transform transition-transform duration-300 flex flex-col overflow-y-auto"
      [class.translate-x-full]="!isOpen()">
 
-  <!-- BOTÓN PARA CERRAR -->
+  <!-- CERRAR -->
   <button class="self-end mb-4 p-2 rounded-full hover:bg-white/20 transition"
-          (click)="close()">
+          (click)="close()"
+          aria-label="Cerrar menu">
     <span class="material-icons text-2xl">close</span>
   </button>
 
-  <h2 class="text-xl font-semibold mb-6">Menú</h2>
+  <h2 class="text-xl font-semibold mb-6">Menu</h2>
 
-  <div class="flex flex-col gap-3">
+  <div class="flex flex-col gap-4">
 
-    <!-- SÍ autenticado -->
-    @if (isLoggedIn()) {
-      @if (isAdmin()) {
-        <a [routerLink]="['/admin']" (click)="close()"
-           class="w-full flex items-center gap-2 bg-secondary/40 text-white px-4 py-2 rounded-lg hover:bg-secondary/60 transition">
+    <!-- SELECTOR DE TEMAS -->
+    <div class="border-t border-white/20 pt-4">
+      <p class="text-xs font-bold uppercase tracking-wide mb-3 text-white/70">Tema</p>
+      <div class="flex flex-col gap-2">
+        <button *ngFor="let theme of availableThemes()" type="button"
+                (click)="selectTheme(theme.id)"
+                [ngClass]="{'bg-secondary': currentThemeId() === theme.id, 'bg-white/20': currentThemeId() !== theme.id}"
+                class="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg transition-colors hover:bg-white/30">
+          <span class="material-icons text-base">{{ theme.id === 'classic' ? 'light_mode' : 'dark_mode' }}</span>
+          <span class="text-sm">{{ theme.name }}</span>
+          <span class="material-icons text-base ml-auto" *ngIf="currentThemeId() === theme.id">check</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- CARRITO -->
+    <button *ngIf="!isAdmin()" class="w-full flex items-center gap-2 bg-secondary text-primary px-4 py-2 rounded-lg hover:bg-secondary/80 transition font-semibold border-t border-white/20 pt-4"
+            (click)="close()">
+      <span class="material-icons">shopping_cart</span>
+      <span>Carrito</span>
+      <span class="ml-auto bg-accent text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full" *ngIf="cartCount() > 0">{{ cartCount() }}</span>
+    </button>
+
+    <!-- AUTENTICACION -->
+    <div class="border-t border-white/20 pt-4">
+      <!-- AUTENTICADO -->
+      <ng-container *ngIf="isLoggedIn()">
+        <a *ngIf="isAdmin()" [routerLink]="['/admin']" (click)="close()"
+           class="w-full flex items-center gap-2 bg-secondary/40 text-white px-4 py-2 rounded-lg hover:bg-secondary/60 transition mb-2">
           <span class="material-icons text-lg">admin_panel_settings</span>
           Panel de Admin
         </a>
-      }
 
-      <button class="w-full flex items-center gap-2 bg-secondary text-primary px-4 py-2 rounded-lg hover:bg-tertiary transition"
-              (click)="close()">
-        <span class="material-icons">account_circle</span>
-        Mi cuenta
-      </button>
+        <button class="w-full flex items-center gap-2 bg-secondary/40 text-white px-4 py-2 rounded-lg hover:bg-secondary/60 transition mb-2"
+                (click)="close()">
+          <span class="material-icons">account_circle</span>
+          Mi cuenta
+        </button>
 
-      <button class="w-full flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-secondary/30 transition"
-              (click)="logout.emit()">
-        <span class="material-icons">logout</span>
-        Cerrar sesión
-      </button>
-    } @else {
-      <!-- NO autenticado: opciones de acceso -->
-      <a [routerLink]="['/auth/login']" (click)="close()"
-         class="w-full flex items-center gap-2 bg-secondary/40 text-white px-4 py-2 rounded-lg hover:bg-secondary/60 transition">
-        <span class="material-icons">admin_panel_settings</span>
-        Administrar
-      </a>
+        <button class="w-full flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-secondary/30 transition"
+                (click)="logout.emit()">
+          <span class="material-icons">logout</span>
+          Cerrar sesion
+        </button>
+      </ng-container>
 
-      <a [routerLink]="['/auth/login']" (click)="close()"
-         class="w-full flex items-center gap-2 bg-secondary/40 text-white px-4 py-2 rounded-lg hover:bg-secondary/60 transition">
-        <span class="material-icons">login</span>
-        Iniciar sesión
-      </a>
-    }
+      <!-- NO autenticado -->
+      <ng-container *ngIf="!isLoggedIn()">
+        <a [routerLink]="['/auth/login']" (click)="close()"
+           class="w-full flex items-center gap-2 bg-secondary/40 text-white px-4 py-2 rounded-lg hover:bg-secondary/60 transition mb-2">
+          <span class="material-icons">admin_panel_settings</span>
+          Administrar
+        </a>
 
+        <a [routerLink]="['/auth/login']" (click)="close()"
+           class="w-full flex items-center gap-2 bg-secondary/40 text-white px-4 py-2 rounded-lg hover:bg-secondary/60 transition">
+          <span class="material-icons">login</span>
+          Iniciar sesion
+        </a>
+      </ng-container>
+    </div>
   </div>
 
 </div>
