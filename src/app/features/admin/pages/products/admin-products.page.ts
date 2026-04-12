@@ -63,9 +63,10 @@ import { StorageIndicatorComponent } from '../../components/storage-indicator/st
           type="button"
           (click)="openCreateForm()"
           [disabled]="isLoading()"
-          class="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:opacity-90 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
+          class="flex items-center justify-center bg-primary text-white w-10 h-10 rounded-lg hover:opacity-90 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+          title="Agregar producto"
+          aria-label="Agregar nuevo producto">
           <span class="material-icons text-lg">add</span>
-          Nuevo producto
         </button>
       </div>
 
