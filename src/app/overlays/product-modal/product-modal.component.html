@@ -58,7 +58,6 @@
         </p>
       </div>
 
-      <!-- Botón de acción (solo Agregar al carrito) -->
       <div class="mt-6">
         <button
           type="button"
@@ -66,8 +65,8 @@
                 hover:bg-primary/90 hover:shadow-lg active:scale-95
                 transition-all duration-200"
           (click)="onAddToCart(product)"
-          [attr.aria-label]="'Agregar ' + product.name + ' al carrito'">
-          Agregar al carrito
+          [attr.aria-label]="'Pedir ' + product.name">
+          Pedir
         </button>
       </div>
     </div>
