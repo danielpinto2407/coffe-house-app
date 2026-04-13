@@ -28,7 +28,8 @@ export class CartService {
   );
 
   /**
-   * ✅ SSR-SAFE: Solo accede a localStorage en el cliente (no en servidor)
+   * ✅ SSR-SAFE: Solo accede a sessionStorage en el cliente (no en servidor)
+   * Usa sessionStorage para que el carrito se vacíe al cerrar la pestaña
    */
   private loadFromStorage(): CartItem[] {
     try {
@@ -37,7 +38,7 @@ export class CartService {
         return [];
       }
 
-      const raw = globalThis.window.localStorage.getItem(STORAGE_KEY);
+      const raw = globalThis.window.sessionStorage.getItem(STORAGE_KEY);
       if (!raw) return [];
 
       const parsed: CartItem[] = JSON.parse(raw);
@@ -48,16 +49,17 @@ export class CartService {
   }
 
   /**
-   * ✅ SSR-SAFE: Solo guarda en localStorage en el cliente
+   * ✅ SSR-SAFE: Solo guarda en sessionStorage en el cliente
+   * Usa sessionStorage para que el carrito se vacíe al cerrar la pestaña
    */
   private saveToStorage(items: CartItem[]): void {
     try {
       if (globalThis.window === undefined || !this.doc.defaultView) {
         return; // No guardar en servidor
       }
-      globalThis.window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+      globalThis.window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(items));
     } catch (e) {
-      // localStorage error - continue
+      // sessionStorage error - continue
     }
   }
 

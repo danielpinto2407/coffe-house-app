@@ -1,3 +1,4 @@
+<!-- ✅ BUSCADOR SIEMPRE VISIBLE -->
 <app-search-bar (search)="onSearch($event)"></app-search-bar>
 
 <!-- ✅ Estado de carga mejorado -->
@@ -10,72 +11,110 @@
 <!-- ✅ Menú renderizado con Signals -->
 @if (!isLoading()) {
   <div class="p-4">
-    <!-- ✅ CARRUSEL DE CATEGORÍAS (TABS) -->
-    @if (categories().length > 0) {
-      <div class="mb-6">
-        <!-- Scroll horizontal de categorías -->
-        <div class="flex overflow-x-auto gap-2 pb-2 -mx-4 px-4 scrollbar-hide">
-          @for (category of categories(); track category.id) {
-            <button
-              (click)="onSelectCategory(category.id)"
-              [class.border-b-2]="selectedCategoryId() === category.id"
-              [class.border-primary]="selectedCategoryId() === category.id"
-              [class.text-primary]="selectedCategoryId() === category.id"
-              [class.text-text-secondary]="selectedCategoryId() !== category.id"
-              class="px-4 py-2 whitespace-nowrap font-semibold transition-all duration-200 hover:text-primary"
-            >
-              {{ category.name }}
-            </button>
-          }
+    
+    <!-- 🔍 MODO BÚSQUEDA: Mostrar todos los productos encontrados -->
+    @if (isSearching()) {
+      <h2 class="text-2xl font-bold text-text mb-6">Resultados de búsqueda</h2>
+      
+      @if (allSearchProducts().length === 0) {
+        <div class="text-center p-8">
+          <p class="text-secondary text-lg">No se encontraron productos que coincidan con tu búsqueda.</p>
         </div>
-      </div>
-    }
+      }
 
-    <!-- Sin resultados -->
-    @if (menu().length === 0) {
-      <div class="text-center p-8">
-        <p class="text-secondary text-lg">No se encontraron productos que coincidan con tu búsqueda.</p>
-      </div>
-    }
+      @if (allSearchProducts().length > 0) {
+        <!-- Grid de productos: Desktop (grid) / Mobile (flex col) -->
+        <div class="hidden md:grid gap-8 sm:gap-10"
+             style="grid-template-columns: repeat(auto-fit, minmax(130px,1fr));">
 
-    <!-- ✅ CONTENIDO DE LA CATEGORÍA SELECCIONADA -->
-    @if (selectedCategoryData()) {
-      <div>
-        <h2 class="text-2xl font-bold text-text mb-3">
-          {{ selectedCategoryData()?.name }}
-        </h2>
-        <h3 class="font-bold text-text-secondary mb-6">
-          {{ selectedCategoryData()?.description }}
-        </h3>
-
-        <!-- Subcategorías (solo si tienen productos) -->
-        @for (sub of selectedCategoryData()?.subcategories || []; track sub.id) {
-          @if (sub.products.length > 0) {
-            <div class="mb-6">
-              <h3 class="text-xl font-semibold text-text mb-3">
-                {{ sub.name }}
-              </h3>
-
-              <!-- Grid de productos: Desktop (grid) / Mobile (flex col) -->
-              <div class="hidden md:grid gap-8 sm:gap-10"
-                   style="grid-template-columns: repeat(auto-fit, minmax(130px,1fr));">
-
-                @for (prod of sub.products; track prod.id) {
-                  <app-product-card [product]="prod"></app-product-card>
-                }
-
-              </div>
-
-              <!-- Layout móvil: Flex column -->
-              <div class="md:hidden flex flex-col gap-3">
-
-                @for (prod of sub.products; track prod.id) {
-                  <app-product-card [product]="prod"></app-product-card>
-                }
-
-              </div>
-            </div>
+          @for (prod of allSearchProducts(); track prod.id) {
+            <app-product-card [product]="prod"></app-product-card>
           }
+
+        </div>
+
+        <!-- Layout móvil: Flex column -->
+        <div class="md:hidden flex flex-col gap-3">
+
+          @for (prod of allSearchProducts(); track prod.id) {
+            <app-product-card [product]="prod"></app-product-card>
+          }
+
+        </div>
+      }
+    }
+
+    <!-- 📋 MODO NORMAL: Mostrar categorías y contenido seleccionado -->
+    @if (!isSearching()) {
+      <div>
+        <!-- ✅ CARRUSEL DE CATEGORÍAS (TABS) -->
+        @if (categories().length > 0) {
+          <div class="mb-6">
+            <!-- Scroll horizontal de categorías -->
+            <div class="flex overflow-x-auto gap-2 pb-2 -mx-4 px-4 scrollbar-hide">
+              @for (category of categories(); track category.id) {
+                <button
+                  (click)="onSelectCategory(category.id)"
+                  [class.border-b-2]="selectedCategoryId() === category.id"
+                  [class.border-primary]="selectedCategoryId() === category.id"
+                  [class.text-primary]="selectedCategoryId() === category.id"
+                  [class.text-text-secondary]="selectedCategoryId() !== category.id"
+                  class="px-4 py-2 whitespace-nowrap font-semibold transition-all duration-200 hover:text-primary"
+                >
+                  {{ category.name }}
+                </button>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Sin resultados -->
+        @if (menu().length === 0) {
+          <div class="text-center p-8">
+            <p class="text-secondary text-lg">No se encontraron productos que coincidan con tu búsqueda.</p>
+          </div>
+        }
+
+        <!-- ✅ CONTENIDO DE LA CATEGORÍA SELECCIONADA -->
+        @if (selectedCategoryData()) {
+          <div>
+            <h2 class="text-2xl font-bold text-text mb-3">
+              {{ selectedCategoryData()?.name }}
+            </h2>
+            <h3 class="font-bold text-text-secondary mb-6">
+              {{ selectedCategoryData()?.description }}
+            </h3>
+
+            <!-- Subcategorías (solo si tienen productos) -->
+            @for (sub of selectedCategoryData()?.subcategories || []; track sub.id) {
+              @if (sub.products.length > 0) {
+                <div class="mb-6">
+                  <h3 class="text-xl font-semibold text-text mb-3">
+                    {{ sub.name }}
+                  </h3>
+
+                  <!-- Grid de productos: Desktop (grid) / Mobile (flex col) -->
+                  <div class="hidden md:grid gap-8 sm:gap-10"
+                       style="grid-template-columns: repeat(auto-fit, minmax(130px,1fr));">
+
+                    @for (prod of sub.products; track prod.id) {
+                      <app-product-card [product]="prod"></app-product-card>
+                    }
+
+                  </div>
+
+                  <!-- Layout móvil: Flex column -->
+                  <div class="md:hidden flex flex-col gap-3">
+
+                    @for (prod of sub.products; track prod.id) {
+                      <app-product-card [product]="prod"></app-product-card>
+                    }
+
+                  </div>
+                </div>
+              }
+            }
+          </div>
         }
       </div>
     }
