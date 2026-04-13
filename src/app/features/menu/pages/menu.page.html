@@ -10,6 +10,27 @@
 <!-- ✅ Menú renderizado con Signals -->
 @if (!isLoading()) {
   <div class="p-4">
+    <!-- ✅ CARRUSEL DE CATEGORÍAS (TABS) -->
+    @if (categories().length > 0) {
+      <div class="mb-6">
+        <!-- Scroll horizontal de categorías -->
+        <div class="flex overflow-x-auto gap-2 pb-2 -mx-4 px-4 scrollbar-hide">
+          @for (category of categories(); track category.id) {
+            <button
+              (click)="onSelectCategory(category.id)"
+              [class.border-b-2]="selectedCategoryId() === category.id"
+              [class.border-primary]="selectedCategoryId() === category.id"
+              [class.text-primary]="selectedCategoryId() === category.id"
+              [class.text-text-secondary]="selectedCategoryId() !== category.id"
+              class="px-4 py-2 whitespace-nowrap font-semibold transition-all duration-200 hover:text-primary"
+            >
+              {{ category.name }}
+            </button>
+          }
+        </div>
+      </div>
+    }
+
     <!-- Sin resultados -->
     @if (menu().length === 0) {
       <div class="text-center p-8">
@@ -17,27 +38,36 @@
       </div>
     }
 
-    <!-- Categorías -->
-    @for (cat of menu(); track cat.id) {
-      <div class="mb-4">
+    <!-- ✅ CONTENIDO DE LA CATEGORÍA SELECCIONADA -->
+    @if (selectedCategoryData()) {
+      <div>
         <h2 class="text-2xl font-bold text-text mb-3">
-          {{ cat.name }}
+          {{ selectedCategoryData()?.name }}
         </h2>
-        <h3 class="font-bold text-text-secondary mb-3">
-          {{ cat.description }}
+        <h3 class="font-bold text-text-secondary mb-6">
+          {{ selectedCategoryData()?.description }}
         </h3>
 
         <!-- Subcategorías (solo si tienen productos) -->
-        @for (sub of cat.subcategories; track sub.id) {
+        @for (sub of selectedCategoryData()?.subcategories || []; track sub.id) {
           @if (sub.products.length > 0) {
-            <div class="mb-3">
-              <h3 class="text-xl font-semibold text-text mb-2">
+            <div class="mb-6">
+              <h3 class="text-xl font-semibold text-text mb-3">
                 {{ sub.name }}
               </h3>
 
-              <!-- Grid de productos -->
-              <div class="grid gap-8 sm:gap-10"
+              <!-- Grid de productos: Desktop (grid) / Mobile (flex col) -->
+              <div class="hidden md:grid gap-8 sm:gap-10"
                    style="grid-template-columns: repeat(auto-fit, minmax(130px,1fr));">
+
+                @for (prod of sub.products; track prod.id) {
+                  <app-product-card [product]="prod"></app-product-card>
+                }
+
+              </div>
+
+              <!-- Layout móvil: Flex column -->
+              <div class="md:hidden flex flex-col gap-3">
 
                 @for (prod of sub.products; track prod.id) {
                   <app-product-card [product]="prod"></app-product-card>
@@ -52,3 +82,14 @@
 
   </div>
 }
+
+<!-- ✅ CSS para ocultar scrollbar visual pero mantener funcionalidad -->
+<style>
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+</style>

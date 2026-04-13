@@ -21,7 +21,27 @@
 
   <h2 class="text-xl font-semibold mb-6">Menú</h2>
 
-  <div class="flex flex-col gap-3">
+  <div class="flex flex-col gap-3 overflow-y-auto flex-1">
+
+    <!-- SELECTOR DE TEMAS -->
+    <div class="border-b border-white/20 pb-3">
+      <p class="text-xs font-bold uppercase tracking-wide mb-2 text-white/70">Tema</p>
+      <div class="flex flex-col gap-2">
+        <button *ngFor="let theme of availableThemes()" 
+                type="button"
+                (click)="selectTheme(theme.id)"
+                [ngClass]="{'bg-secondary': currentThemeId() === theme.id, 'bg-white/20': currentThemeId() !== theme.id}"
+                class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors hover:bg-white/30">
+          <span class="material-icons text-base" *ngIf="theme.id === 'classic'">light_mode</span>
+          <span class="material-icons text-base" *ngIf="theme.id !== 'classic'">dark_mode</span>
+          <span>{{ theme.name }}</span>
+          <span class="material-icons text-base ml-auto" *ngIf="currentThemeId() === theme.id">check</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- SEPARADOR -->
+    <div class="border-b border-white/20"></div>
 
     <!-- SÍ autenticado -->
     @if (isLoggedIn()) {

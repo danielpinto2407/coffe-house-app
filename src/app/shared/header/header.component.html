@@ -1,7 +1,7 @@
 <header class="w-full header-bar shadow-md px-3 sm:px-6 py-3 flex items-center justify-between gap-4">
 
   <!-- 🎯 LOGO + MARCA (Navegación primaria) -->
-  <div class="flex items-center gap-3 flex-shrink-0">
+  <a [routerLink]="['/menu']" class="flex items-center gap-3 flex-shrink-0 hover:opacity-80 transition-opacity cursor-pointer">
     <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-secondary flex items-center justify-center overflow-hidden shadow-md hover:shadow-lg transition-shadow">
       <img src="assets/img/logo.png" 
            alt="Coffee House - Logo"
@@ -14,7 +14,7 @@
         style="font-family: 'Georgia', serif;">
       Coffee House
     </h1>
-  </div>
+  </a>
 
   <!-- 🔧 ESPACIADOR (empuja las acciones a la derecha) -->
   <div class="flex-1"></div>
@@ -22,47 +22,72 @@
   <!-- 🎮 ACCIONES (agrupadas por propósito) -->
   <div class="flex items-center gap-2 sm:gap-3">
 
-    <!-- 1️⃣ SELECTOR DE TEMAS (Configuración) -->
-    <div class="relative">
-      <button 
-        id="theme-btn"
-        class="p-2 rounded-lg hover:bg-secondary/20 transition-colors duration-200 text-secondary" 
-        (click)="toggleThemeSelector()"
-        aria-haspopup="menu"
-        [attr.aria-expanded]="isThemeSelectorOpen()"
-        aria-label="Cambiar tema de color"
-        title="Temas">
-        <span class="material-icons text-2xl" aria-hidden="true">palette</span>
-      </button>
-
-      <!-- Dropdown: Temas -->
-      <div *ngIf="isThemeSelectorOpen()" 
-           role="menu"
-           aria-labelledby="theme-btn"
-           class="absolute top-full right-0 mt-2 bg-surface border border-border rounded-xl shadow-2xl p-3 w-48 z-50 animate-in fade-in slide-in-from-top-2">
-        <p class="text-xs font-bold uppercase tracking-wide mb-3 text-text-secondary px-1">Tema</p>
+    <!-- ═══════════════════════════════════════ -->
+    <!-- SOLO EN DESKTOP: SELECTOR DE TEMAS -->
+    <!-- ═══════════════════════════════════════ -->
+    <div class="hidden md:flex items-center gap-2">
+      <!-- SELECTOR DE TEMAS (Configuración) -->
+      <div class="relative">
         <button 
-          *ngFor="let theme of availableThemes()" 
-          type="button"
-          role="menuitem"
-          [attr.aria-selected]="currentThemeId() === theme.id"
-          (click)="setTheme(theme.id)"
-          [ngClass]="{
-            'bg-primary text-tertiary font-semibold shadow-md': currentThemeId() === theme.id,
-            'text-text bg-background-light hover:bg-hover': currentThemeId() !== theme.id
-          }"
-          class="w-full text-left px-3 py-2.5 rounded-lg mb-2 last:mb-0 transition-all duration-150 flex items-center gap-2">
-          <span class="material-icons text-base" aria-hidden="true">{{ theme.id === 'classic' ? 'light_mode' : 'dark_mode' }}</span>
-          {{ theme.name }}
+          id="theme-btn"
+          class="p-2 rounded-lg hover:bg-secondary/20 transition-colors duration-200 text-secondary" 
+          (click)="toggleThemeSelector()"
+          aria-haspopup="menu"
+          [attr.aria-expanded]="isThemeSelectorOpen()"
+          aria-label="Cambiar tema de color"
+          title="Temas">
+          <span class="material-icons text-2xl" aria-hidden="true">palette</span>
         </button>
+
+        <!-- Dropdown: Temas -->
+        <div *ngIf="isThemeSelectorOpen()" 
+             role="menu"
+             aria-labelledby="theme-btn"
+             class="absolute top-full right-0 mt-2 bg-surface border border-border rounded-xl shadow-2xl p-3 w-48 z-50 animate-in fade-in slide-in-from-top-2">
+          <p class="text-xs font-bold uppercase tracking-wide mb-3 text-text-secondary px-1">Tema</p>
+          <button 
+            *ngFor="let theme of availableThemes()" 
+            type="button"
+            role="menuitem"
+            [attr.aria-selected]="currentThemeId() === theme.id"
+            (click)="setTheme(theme.id)"
+            [ngClass]="{
+              'bg-primary text-tertiary font-semibold shadow-md': currentThemeId() === theme.id,
+              'text-text bg-background-light hover:bg-hover': currentThemeId() !== theme.id
+            }"
+            class="w-full text-left px-3 py-2.5 rounded-lg mb-2 last:mb-0 transition-all duration-150 flex items-center gap-2">
+            <span class="material-icons text-base" aria-hidden="true">{{ theme.id === 'classic' ? 'light_mode' : 'dark_mode' }}</span>
+            {{ theme.name }}
+          </button>
+        </div>
       </div>
+
+      <!-- CARRITO (solo en desktop, para todos menos admin) -->
+      <button 
+        *ngIf="isAuthReady() && !auth.isAdmin()"
+        type="button"
+        class="relative p-2 rounded-lg hover:bg-secondary/20 transition-colors duration-200 text-secondary"
+        (click)="cart.open()"
+        aria-label="Abrir carrito de compras">
+        <span class="material-icons text-2xl" aria-hidden="true">shopping_cart</span>
+        
+        <!-- Badge: Contador de artículos -->
+        <span class="absolute -top-0.5 -right-0.5 bg-accent text-white text-xs font-bold
+                    w-5 h-5 flex items-center justify-center rounded-full shadow-md"
+              *ngIf="cartCount() > 0"
+              [attr.aria-label]="'Artículos en el carrito: ' + (cartCount() || 0)">
+          {{ cartCount() }}
+        </span>
+      </button>
     </div>
 
-    <!-- 2️⃣ CARRITO (siempre visible para todos menos admin) -->
+    <!-- ═══════════════════════════════════════ -->
+    <!-- CARRITO EN MÓVIL (visible siempre) -->
+    <!-- ═══════════════════════════════════════ -->
     <button 
       *ngIf="isAuthReady() && !auth.isAdmin()"
       type="button"
-      class="relative p-2 rounded-lg hover:bg-secondary/20 transition-colors duration-200 text-secondary"
+      class="relative p-2 rounded-lg hover:bg-secondary/20 transition-colors duration-200 md:hidden text-secondary"
       (click)="cart.open()"
       aria-label="Abrir carrito de compras">
       <span class="material-icons text-2xl" aria-hidden="true">shopping_cart</span>
@@ -177,6 +202,11 @@
   [isOpen]="isMenuOpen()"
   [isLoggedIn]="isAuthReady() && auth.isLoggedIn()"
   [isAdmin]="isAuthReady() && auth.isAdmin()"
+  [cartCount]="cartCount()"
+  [availableThemes]="availableThemes()"
+  [currentThemeId]="currentThemeId()"
   (closed)="closeMenu()"
-  (logout)="logout()">
+  (logout)="logout()"
+  (themeChange)="setTheme($event)"
+  (openCart)="cart.open()">
 </app-mobile-menu>

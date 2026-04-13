@@ -3,41 +3,88 @@
   (keydown.enter)="openProduct()"
   tabindex="0"
   [style.backgroundColor]="'var(--color-surface)'"
-  class="rounded-2xl shadow-md hover:shadow-xl transition 
-         p-4 w-full flex flex-col items-center text-center cursor-pointer
-         transform hover:-translate-y-1 hover:scale-105 duration-300">
+  class="rounded-2xl shadow-md hover:shadow-xl transition
+         cursor-pointer duration-300">
 
-  <!-- ✅ Imagen optimizada con lazy loading -->
-  <div class="w-32 h-32 rounded-xl overflow-hidden shadow-md mb-3 bg-text/10">
-    <img 
-      [src]="optimizedImage().src"
-      [srcset]="optimizedImage().srcset"
-      [sizes]="optimizedImage().sizes"
-      [alt]="product().name"
-      loading="lazy"
-      decoding="async"
-      class="w-full h-full object-cover transition-opacity duration-300"
-    >
+  <!-- LAYOUT MÓVIL: Horizontal (flex) -->
+  <div class="md:hidden p-3 flex flex-row items-center gap-4 text-left border border-border">
+    <!-- Imagen (izquierda) -->
+    <div class="w-24 h-24 rounded-lg overflow-hidden shadow-sm flex-shrink-0 bg-text/10">
+      <img 
+        [src]="optimizedImage().src"
+        [srcset]="optimizedImage().srcset"
+        [sizes]="optimizedImage().sizes"
+        [alt]="product().name"
+        loading="lazy"
+        decoding="async"
+        class="w-full h-full object-cover transition-opacity duration-300"
+      >
+    </div>
+
+    <!-- Información (centro) -->
+    <div class="flex-1 min-w-0">
+      <!-- Título -->
+      <h3 class="text-base font-semibold text-text truncate" style="color: var(--color-text)">
+        {{ product().name }}
+      </h3>
+
+      <!-- Descripción corta -->
+      @if (product().description) {
+        <p class="text-xs text-text-secondary line-clamp-1 mt-0.5">
+          {{ product().description }}
+        </p>
+      }
+
+      <!-- Precio -->
+      <p class="text-lg font-bold text-text mt-1" style="color: var(--color-text)">
+        ${{ product().price | number:'1.0-0' }}
+      </p>
+    </div>
+
+    <!-- Botón (derecha) -->
+    <button
+      (click)="addToCart($event)"
+      [style.backgroundColor]="'var(--color-primary)'"
+      class="flex-shrink-0 w-10 h-10 rounded-lg text-white font-bold text-xl flex items-center justify-center
+             hover:brightness-90 transition hover:shadow-lg"
+      aria-label="Agregar a carrito">
+      +
+    </button>
   </div>
 
-  <!-- Título -->
-  <h3 class="text-lg font-semibold text-text tracking-wide" style="color: var(--color-text)">
-    {{ product().name }}
-  </h3>
+  <!-- LAYOUT DESKTOP: Vertical (flex-col) -->
+  <div class="hidden md:flex md:flex-col md:items-center md:text-center md:p-4">
+    <!-- Imagen -->
+    <div class="w-32 h-32 rounded-xl overflow-hidden shadow-md mb-3 bg-text/10">
+      <img 
+        [src]="optimizedImage().src"
+        [srcset]="optimizedImage().srcset"
+        [sizes]="optimizedImage().sizes"
+        [alt]="product().name"
+        loading="lazy"
+        decoding="async"
+        class="w-full h-full object-cover transition-opacity duration-300"
+      >
+    </div>
 
-  <!-- Precio -->
-  <p class="text-xl font-bold text-text mt-1" style="color: var(--color-text)">
-    ${{ product().price | number:'1.0-0' }}
-  </p>
+    <!-- Título -->
+    <h3 class="text-lg font-semibold text-text tracking-wide" style="color: var(--color-text)">
+      {{ product().name }}
+    </h3>
 
-  <!-- Botón -->
-  <button
-    (click)="addToCart($event)"
-    [style.backgroundColor]="'var(--color-primary)'"
-    [style]="{'--color-hover': 'var(--color-tertiary)'}"
-    class="mt-4 w-full text-white font-medium px-4 py-2 rounded-xl 
-           hover:brightness-90 transition">
-    Pedir
-  </button>
+    <!-- Precio -->
+    <p class="text-xl font-bold text-text mt-1" style="color: var(--color-text)">
+      ${{ product().price | number:'1.0-0' }}
+    </p>
+
+    <!-- Botón -->
+    <button
+      (click)="addToCart($event)"
+      [style.backgroundColor]="'var(--color-primary)'"
+      class="mt-4 w-full text-white font-medium px-4 py-2 rounded-xl 
+             hover:brightness-90 transition">
+      Pedir
+    </button>
+  </div>
 
 </div>
