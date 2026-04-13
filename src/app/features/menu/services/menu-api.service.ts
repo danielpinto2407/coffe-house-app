@@ -84,15 +84,21 @@ export class MenuApiService {
           return menu; // Retorna menú completo si searchTerm está vacío
         }
 
-        const term = searchTerm.toLowerCase().trim();
+        // Normalizar término: convertir a minúsculas y remover tildes/acentos
+        const normalizedTerm = this.normalizeText(searchTerm).toLowerCase().trim();
 
         // Filtrar en el índice (O(n) una sola vez)
         const matchedProductIds = new Set(
           this.searchIndex
-            .filter(p => 
-              p.name.toLowerCase().includes(term) || 
-              p.description?.toLowerCase().includes(term)
-            )
+            .filter(p => {
+              const normalizedName = this.normalizeText(p.name).toLowerCase();
+              const normalizedDesc = p.description ? this.normalizeText(p.description).toLowerCase() : '';
+              
+              return (
+                normalizedName.includes(normalizedTerm) || 
+                normalizedDesc.includes(normalizedTerm)
+              );
+            })
             .map(p => p.id)
         );
 
@@ -100,6 +106,16 @@ export class MenuApiService {
         return this.filterMenuByProductIds(menu, matchedProductIds);
       })
     );
+  }
+
+  /**
+   * ✅ Normaliza texto: convierte tildes/acentos a caracteres sin diacríticos
+   * "búsqueda" → "busqueda"
+   */
+  private normalizeText(text: string): string {
+    return text
+      .normalize('NFD')                           // Descompone caracteres con acentos
+      .replace(/[\u0300-\u036f]/g, '');          // Remueve diacríticos
   }
 
   // ============================================

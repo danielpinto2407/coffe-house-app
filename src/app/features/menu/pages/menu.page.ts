@@ -22,9 +22,13 @@ export class MenuPage implements OnInit {
   protected readonly fullMenu = signal<MenuStructure[]>([]);
   protected readonly isLoading = signal(true);
   protected readonly selectedCategoryId = signal<number | null>(null);
+  protected readonly searchTerm = signal<string>('');
 
   // ✅ COMPUTED: Menú filtrado calculado reactivamente
   protected readonly menu = computed(() => this.fullMenu());
+
+  // ✅ COMPUTED: ¿Estamos en modo búsqueda?
+  protected readonly isSearching = computed(() => this.searchTerm().trim().length > 0);
 
   // ✅ COMPUTED: Categorías disponibles (sin duplicados)
   protected readonly categories = computed(() => {
@@ -42,6 +46,17 @@ export class MenuPage implements OnInit {
     
     const category = this.fullMenu().find(cat => cat.id === categoryId);
     return category || null;
+  });
+
+  // ✅ COMPUTED: Todos los productos de búsqueda (sin estructura)
+  protected readonly allSearchProducts = computed(() => {
+    const products: any[] = [];
+    this.fullMenu().forEach(category => {
+      category.subcategories.forEach(sub => {
+        products.push(...sub.products);
+      });
+    });
+    return products;
   });
 
   // ✅ Debounce para búsqueda (evita filtros excesivos)
@@ -104,6 +119,7 @@ export class MenuPage implements OnInit {
    * Usa Subject + debounce para no filtrar a cada keystroke
    */
   onSearch(term: string): void {
+    this.searchTerm.set(term);
     this.searchSubject.next(term);
   }
 }
