@@ -40,6 +40,7 @@ export class MenuApiService {
 
   /**
    * ✅ Carga todos los datos de Supabase y construye la estructura del menú
+   * Soporta productos directos en categorías y productos en subcategorías
    */
   private async loadMenuFromSupabase(): Promise<MenuStructure[]> {
     try {
@@ -52,9 +53,15 @@ export class MenuApiService {
       const categories = this.categoryService.categories();
       
       return categories
-        .map(category => ({
-          ...category,
-          subcategories: this.subcategoryService
+        .map(category => {
+          // ✅ Productos directos de la categoría (sin subcategoría)
+          const directProducts = this.productService
+            .products()
+            .filter(p => p.categoryId === category.id && !p.subcategoryId && p.active !== false)
+            .sort((a, b) => a.order - b.order);
+
+          // ✅ Subcategorías con sus productos
+          const subcategories = this.subcategoryService
             .subcategories()
             .filter(s => s.categoryId === category.id)
             .map(sub => ({
@@ -62,10 +69,19 @@ export class MenuApiService {
               products: this.productService
                 .products()
                 .filter(p => p.subcategoryId === sub.id && p.active !== false)
+                .sort((a, b) => a.order - b.order)
             }))
             .filter(sub => sub.products.length > 0) // ✅ Solo subcategorías con productos
-        }))
-        .filter(cat => cat.subcategories.length > 0) // ✅ Solo categorías con subcategorías
+            .sort((a, b) => a.order - b.order);
+
+          return {
+            ...category,
+            products: directProducts.length > 0 ? directProducts : undefined,
+            subcategories: subcategories
+          };
+        })
+        // ✅ Solo categorías que tengan productos directos O subcategorías con productos
+        .filter(cat => (cat.products && cat.products.length > 0) || cat.subcategories.length > 0)
         .sort((a, b) => a.order - b.order);
     } catch (error) {
       console.error('Error cargando menú desde Supabase:', error);
@@ -124,11 +140,24 @@ export class MenuApiService {
 
   /**
    * Crea un índice plano para búsquedas rápidas
+   * Incluye productos directos de categorías y productos en subcategorías
    */
   private buildSearchIndex(menu: MenuStructure[]): void {
     this.searchIndex = [];
     
     for (const category of menu) {
+      // ✅ Productos directos de la categoría
+      if (category.products) {
+        for (const product of category.products) {
+          this.searchIndex.push({
+            ...product,
+            categoryName: category.name,
+            subcategoryName: '' // Sin subcategoría
+          });
+        }
+      }
+
+      // ✅ Productos en subcategorías
       for (const subcategory of category.subcategories) {
         for (const product of subcategory.products) {
           this.searchIndex.push({
