@@ -1,7 +1,7 @@
 <header class="w-full header-bar shadow-md px-3 sm:px-6 py-3 flex items-center justify-between gap-4">
 
   <!-- 🎯 LOGO + MARCA (Navegación primaria) -->
-  <div class="flex items-center gap-3 flex-shrink-0">
+  <a [routerLink]="['/menu']" class="flex items-center gap-3 flex-shrink-0 hover:opacity-80 transition-opacity cursor-pointer">
     <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-secondary flex items-center justify-center overflow-hidden shadow-md hover:shadow-lg transition-shadow">
       <img src="assets/img/logo.png" 
            alt="Coffee House - Logo"
@@ -14,7 +14,7 @@
         style="font-family: 'Georgia', serif;">
       Coffee House
     </h1>
-  </div>
+  </a>
 
   <!-- 🔧 ESPACIADOR (empuja las acciones a la derecha) -->
   <div class="flex-1"></div>
@@ -23,10 +23,10 @@
   <div class="flex items-center gap-2 sm:gap-3">
 
     <!-- ═══════════════════════════════════════ -->
-    <!-- SOLO EN DESKTOP: SELECTOR DE TEMAS + CARRITO -->
+    <!-- SOLO EN DESKTOP: SELECTOR DE TEMAS -->
     <!-- ═══════════════════════════════════════ -->
     <div class="hidden md:flex items-center gap-2">
-      <!-- 1️⃣ SELECTOR DE TEMAS (Configuración) -->
+      <!-- SELECTOR DE TEMAS (Configuración) -->
       <div class="relative">
         <button 
           id="theme-btn"
@@ -62,7 +62,7 @@
         </div>
       </div>
 
-      <!-- 2️⃣ CARRITO (solo en desktop, para todos menos admin) -->
+      <!-- CARRITO (solo en desktop, para todos menos admin) -->
       <button 
         *ngIf="isAuthReady() && !auth.isAdmin()"
         type="button"
@@ -80,6 +80,26 @@
         </span>
       </button>
     </div>
+
+    <!-- ═══════════════════════════════════════ -->
+    <!-- CARRITO EN MÓVIL (visible siempre) -->
+    <!-- ═══════════════════════════════════════ -->
+    <button 
+      *ngIf="isAuthReady() && !auth.isAdmin()"
+      type="button"
+      class="relative p-2 rounded-lg hover:bg-secondary/20 transition-colors duration-200 md:hidden text-secondary"
+      (click)="cart.open()"
+      aria-label="Abrir carrito de compras">
+      <span class="material-icons text-2xl" aria-hidden="true">shopping_cart</span>
+      
+      <!-- Badge: Contador de artículos -->
+      <span class="absolute -top-0.5 -right-0.5 bg-accent text-white text-xs font-bold
+                  w-5 h-5 flex items-center justify-center rounded-full shadow-md"
+            *ngIf="cartCount() > 0"
+            [attr.aria-label]="'Artículos en el carrito: ' + (cartCount() || 0)">
+        {{ cartCount() }}
+      </span>
+    </button>
 
     <!-- ═══════════════════════════════════════ -->
     <!-- SEPARADOR VISUAL EN DESKTOP -->
@@ -187,5 +207,6 @@
   [currentThemeId]="currentThemeId()"
   (closed)="closeMenu()"
   (logout)="logout()"
-  (themeChange)="setTheme($event)">
+  (themeChange)="setTheme($event)"
+  (openCart)="cart.open()">
 </app-mobile-menu>

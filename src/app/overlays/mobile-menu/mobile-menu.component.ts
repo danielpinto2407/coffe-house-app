@@ -22,6 +22,7 @@ export class MobileMenuComponent {
   readonly closed = output<void>();
   readonly logout = output<void>();
   readonly themeChange = output<string>();
+  readonly openCart = output<void>();
 
   close(): void {
     this.closed.emit();
@@ -29,5 +30,10 @@ export class MobileMenuComponent {
 
   selectTheme(themeId: string): void {
     this.themeChange.emit(themeId);
+  }
+
+  handleOpenCart(): void {
+    this.close();
+    this.openCart.emit();
   }
 }
