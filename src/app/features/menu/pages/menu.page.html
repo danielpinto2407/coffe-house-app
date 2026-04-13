@@ -85,7 +85,33 @@
               {{ selectedCategoryData()?.description }}
             </h3>
 
-            <!-- Subcategorías (solo si tienen productos) -->
+            <!-- ✅ PRODUCTOS DIRECTOS DE LA CATEGORÍA (sin subcategoría) -->
+            @if (selectedCategoryData(); as category) {
+              @if (category.products && category.products.length > 0) {
+                <div class="mb-6">
+                  <!-- Grid de productos: Desktop (grid) / Mobile (flex col) -->
+                  <div class="hidden md:grid gap-8 sm:gap-10"
+                       style="grid-template-columns: repeat(auto-fit, minmax(130px,1fr));">
+
+                    @for (prod of category.products; track prod.id) {
+                      <app-product-card [product]="prod"></app-product-card>
+                    }
+
+                  </div>
+
+                  <!-- Layout móvil: Flex column -->
+                  <div class="md:hidden flex flex-col gap-3">
+
+                    @for (prod of category.products; track prod.id) {
+                      <app-product-card [product]="prod"></app-product-card>
+                    }
+
+                  </div>
+                </div>
+              }
+            }
+
+            <!-- ✅ SUBCATEGORÍAS (solo si tienen productos) -->
             @for (sub of selectedCategoryData()?.subcategories || []; track sub.id) {
               @if (sub.products.length > 0) {
                 <div class="mb-6">

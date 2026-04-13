@@ -1,4 +1,5 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
+import { Subject } from 'rxjs';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { Product } from '../models/product.model';
 
@@ -14,10 +15,27 @@ export class ProductService {
   private readonly _loading = signal(false);
   private readonly _error = signal<string | null>(null);
 
+  // ✅ Subject que emite cuando hay cambios de productos
+  private readonly productsChangedSubject = new Subject<{ action: 'create' | 'update' | 'delete', product?: Product }>();
+  readonly productsChanged$ = this.productsChangedSubject.asObservable();
+
   // Computed signals (exponer solo lectura)
   readonly products = computed(() => this._products());
   readonly loading = computed(() => this._loading());
   readonly error = computed(() => this._error());
+
+  // ✅ (#3) Map computado para búsqueda O(1) por subcategoría
+  private readonly _productsBySubcategory = computed(() => {
+    const map = new Map<number, Product[]>();
+    for (const p of this._products()) {
+      const subId = p.subcategoryId;
+      if (subId === undefined || subId === null) continue;
+      const list = map.get(subId) ?? [];
+      list.push(p);
+      map.set(subId, list);
+    }
+    return map;
+  });
 
   /**
    * Cargar todos los productos desde Supabase
@@ -32,8 +50,8 @@ export class ProductService {
       });
       this._products.set(products || []);
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Error al cargar productos';
-      this._error.set(errorMsg);
+      // ✅ (#5) Manejo de error centralizado
+      this.handleError(err, 'Error al cargar productos');
     } finally {
       this._loading.set(false);
     }
@@ -42,8 +60,9 @@ export class ProductService {
   /**
    * Obtener productos por subcategoría
    */
+  // ✅ (#3) Usa el Map computado en lugar de filter en cada llamada
   getProductsBySubcategory(subcategoryId: number): Product[] {
-    return this.products().filter(p => p.subcategoryId === subcategoryId);
+    return this._productsBySubcategory().get(subcategoryId) ?? [];
   }
 
   /**
@@ -53,23 +72,22 @@ export class ProductService {
     this._error.set(null);
 
     try {
-      // Validar que el producto tenga campos requeridos
-      if (!product.name?.trim() || product.price < 0) {
-        throw new Error('Nombre y precio son requeridos');
-      }
+      // ✅ (#6) Validación centralizada
+      this.validateProduct(product);
 
       const newProduct = await this.supabase.insert<Product>(this.tableName, product);
-      
+
       if (newProduct) {
         // Agregar a la lista local
         this._products.set([...this.products(), newProduct as Product]);
+        // ✅ Emitir evento de cambio
+        this.productsChangedSubject.next({ action: 'create', product: newProduct as Product });
       }
 
       return newProduct as Product;
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Error al crear producto';
-      this._error.set(errorMsg);
-      throw err;
+      // ✅ (#5) Manejo de error centralizado
+      this.handleError(err, 'Error al crear producto');
     }
   }
 
@@ -80,28 +98,28 @@ export class ProductService {
     this._error.set(null);
 
     try {
-      // Validar actualizaciones
-      if (updates.price !== undefined && updates.price < 0) {
-        throw new Error('El precio no puede ser negativo');
-      }
+      // ✅ (#6) Validación centralizada
+      this.validateProduct(updates);
 
       const updated = await this.supabase.update<Product>(this.tableName, id, updates);
 
       if (updated) {
-        // Actualizar en lista local
+        // ✅ (#1) Usa `updated` (dato real de BD) en lugar de `updates` (parcial enviado)
         const index = this.products().findIndex(p => p.id === id);
         if (index >= 0) {
-          const updated_products = [...this.products()];
-          updated_products[index] = { ...updated_products[index], ...updates };
-          this._products.set(updated_products);
+          // ✅ (#4) Nombre de variable en camelCase
+          const updatedProducts = [...this.products()];
+          updatedProducts[index] = updated as Product;
+          this._products.set(updatedProducts);
         }
+        // ✅ Emitir evento de cambio
+        this.productsChangedSubject.next({ action: 'update', product: updated as Product });
       }
 
       return updated as Product;
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Error al actualizar producto';
-      this._error.set(errorMsg);
-      throw err;
+      // ✅ (#5) Manejo de error centralizado
+      this.handleError(err, 'Error al actualizar producto');
     }
   }
 
@@ -113,13 +131,18 @@ export class ProductService {
 
     try {
       await this.supabase.delete(this.tableName, id);
-      
+
+      const deletedProduct = this.products().find(p => p.id === id);
       // Remover de lista local
       this._products.set(this.products().filter(p => p.id !== id));
+
+      // ✅ (#2) Solo emite si el producto existía localmente
+      if (deletedProduct) {
+        this.productsChangedSubject.next({ action: 'delete', product: deletedProduct });
+      }
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Error al eliminar producto';
-      this._error.set(errorMsg);
-      throw err;
+      // ✅ (#5) Manejo de error centralizado
+      this.handleError(err, 'Error al eliminar producto');
     }
   }
 
@@ -128,5 +151,22 @@ export class ProductService {
    */
   clearError(): void {
     this._error.set(null);
+  }
+
+  // ✅ (#5) Helper centralizado para manejo de errores
+  private handleError(err: unknown, defaultMsg: string): never {
+    const errorMsg = err instanceof Error ? err.message : defaultMsg;
+    this._error.set(errorMsg);
+    throw err instanceof Error ? err : new Error(errorMsg);
+  }
+
+  // ✅ (#6) Validaciones centralizadas
+  private validateProduct(product: Partial<Omit<Product, 'id'>>): void {
+    if ('name' in product && !product.name?.trim()) {
+      throw new Error('Nombre requerido');
+    }
+    if ('price' in product && product.price !== undefined && product.price < 0) {
+      throw new Error('El precio no puede ser negativo');
+    }
   }
 }

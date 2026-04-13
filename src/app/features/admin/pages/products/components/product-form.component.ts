@@ -1,9 +1,11 @@
 import { Component, inject, signal, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { Product } from '../../models/product.model';
-import { Subcategory } from '../../models/subcategory.model';
-import { SubcategoryService } from '../../services/subcategory.service';
+import { Product } from '../../../menu/models/product.model';
+import { Category } from '../../../menu/models/category.model';
+import { Subcategory } from '../../../menu/models/subcategory.model';
+import { CategoryService } from '../../../menu/services/category.service';
+import { SubcategoryService } from '../../../menu/services/subcategory.service';
 
 @Component({
   selector: 'app-product-form',
@@ -31,23 +33,43 @@ import { SubcategoryService } from '../../services/subcategory.service';
         <!-- Formulario -->
         <form [formGroup]="form" (ngSubmit)="onSubmit()" class="p-6 space-y-6">
           
-          <!-- Subcategoría -->
+          <!-- Categoría -->
           <div>
             <label class="block text-sm font-medium text-text mb-2">
-              Subcategoría <span class="text-red-500">*</span>
+              Categoría <span class="text-red-500">*</span>
+            </label>
+            <select
+              formControlName="categoryId"
+              (change)="onCategoryChange()"
+              class="w-full px-4 py-2 rounded-lg border border-surface bg-background text-text
+                     focus:border-primary focus:outline-none transition">
+              <option value="">Selecciona categoría...</option>
+              <option *ngFor="let cat of categories()" [value]="cat.id">
+                {{ cat.name }}
+              </option>
+            </select>
+            <span *ngIf="isFieldInvalid('categoryId')" class="text-red-500 text-xs mt-1">
+              Categoría es requerida
+            </span>
+          </div>
+
+          <!-- Subcategoría (Opcional) -->
+          <div>
+            <label class="block text-sm font-medium text-text mb-2">
+              Subcategoría <span class="text-text-secondary text-xs">(Opcional)</span>
             </label>
             <select
               formControlName="subcategoryId"
               class="w-full px-4 py-2 rounded-lg border border-surface bg-background text-text
                      focus:border-primary focus:outline-none transition">
-              <option value="">Selecciona subcategoría...</option>
-              <option *ngFor="let sub of subcategories()" [value]="sub.id">
+              <option value="">Sin subcategoría (producto directo de categoría)</option>
+              <option *ngFor="let sub of filteredSubcategories()" [value]="sub.id">
                 {{ sub.name }}
               </option>
             </select>
-            <span *ngIf="isFieldInvalid('subcategoryId')" class="text-red-500 text-xs mt-1">
-              Subcategoría es requerida
-            </span>
+            <p class="text-xs text-text-secondary mt-2">
+              Si no seleccionas subcategoría, el producto aparecerá directamente en la categoría.
+            </p>
           </div>
 
           <!-- Nombre -->
@@ -168,18 +190,22 @@ import { SubcategoryService } from '../../services/subcategory.service';
 })
 export class ProductFormComponent {
   private readonly fb = inject(FormBuilder);
+  private readonly categoryService = inject(CategoryService);
   private readonly subcategoryService = inject(SubcategoryService);
 
   readonly product = input<Product | null>(null);
   readonly submitted = output<Product>();
   readonly cancelled = output<void>();
 
-  protected readonly subcategories = signal<Subcategory[]>([]);
+  protected readonly categories = signal<Category[]>([]);
+  protected readonly allSubcategories = signal<Subcategory[]>([]);
+  protected readonly filteredSubcategories = signal<Subcategory[]>([]);
   protected readonly isLoading = signal(false);
   protected readonly errorMessage = signal<string | null>(null);
 
   protected form = this.fb.group({
-    subcategoryId: [0, [Validators.required, Validators.min(1)]],
+    categoryId: ['', Validators.required],
+    subcategoryId: [''], // ✅ Opcional
     name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]],
     price: [0, [Validators.required, Validators.min(0)]],
     description: ['', [Validators.maxLength(500)]],
@@ -188,6 +214,7 @@ export class ProductFormComponent {
   });
 
   constructor() {
+    this.loadCategories();
     this.loadSubcategories();
     
     // Si hay producto, prellenar el formulario
@@ -195,19 +222,54 @@ export class ProductFormComponent {
       setTimeout(() => {
         const prod = this.product();
         if (prod) {
-          this.form.patchValue(prod);
+          this.form.patchValue({
+            categoryId: prod.categoryId || '',
+            subcategoryId: prod.subcategoryId || '',
+            name: prod.name,
+            price: prod.price,
+            description: prod.description || '',
+            image: prod.image || '',
+            order: prod.order
+          });
+          // Filtrar subcategorías según la categoría del producto
+          if (prod.categoryId) {
+            this.filterSubcategoriesByCategory(prod.categoryId);
+          }
         }
       }, 0);
+    }
+  }
+
+  private async loadCategories(): Promise<void> {
+    try {
+      await this.categoryService.loadCategories();
+      this.categories.set(this.categoryService.categories());
+    } catch (err) {
+      console.error('Error loading categories:', err);
     }
   }
 
   private async loadSubcategories(): Promise<void> {
     try {
       await this.subcategoryService.loadSubcategories();
-      this.subcategories.set(this.subcategoryService.subcategories());
+      this.allSubcategories.set(this.subcategoryService.subcategories());
     } catch (err) {
-      // Error loading subcategories - continue
+      console.error('Error loading subcategories:', err);
     }
+  }
+
+  protected onCategoryChange(): void {
+    const categoryId = this.form.get('categoryId')?.value;
+    if (categoryId) {
+      this.filterSubcategoriesByCategory(Number(categoryId));
+    }
+    // Limpiar subcategoría al cambiar categoría
+    this.form.get('subcategoryId')?.setValue('');
+  }
+
+  private filterSubcategoriesByCategory(categoryId: number): void {
+    const filtered = this.allSubcategories().filter(sub => sub.categoryId === categoryId);
+    this.filteredSubcategories.set(filtered);
   }
 
   protected isFieldInvalid(fieldName: string): boolean {
@@ -232,7 +294,8 @@ export class ProductFormComponent {
       const formData = this.form.value;
       const product: Product = {
         id: this.product()?.id || 0,
-        subcategoryId: formData.subcategoryId as number,
+        categoryId: formData.categoryId ? Number(formData.categoryId) : undefined,
+        subcategoryId: formData.subcategoryId ? Number(formData.subcategoryId) : undefined,
         name: formData.name as string,
         price: formData.price as number,
         description: formData.description || undefined,

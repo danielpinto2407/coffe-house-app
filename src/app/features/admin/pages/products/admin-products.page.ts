@@ -204,15 +204,32 @@ import { StorageIndicatorComponent } from '../../components/storage-indicator/st
                 }
               </div>
 
-              <!-- Subcategoría -->
+              <!-- Categoría -->
               <div>
-                <label class="block text-sm font-medium text-text-secondary mb-1">Subcategoría *</label>
+                <label class="block text-sm font-medium text-text-secondary mb-1">Categoría *</label>
+                <select formControlName="categoryId"
+                        class="w-full px-3 py-2 bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary transition">
+                  <option value="">Selecciona categoría...</option>
+                  @for (cat of categories(); track cat.id) {
+                    <option [value]="cat.id">{{ cat.name }}</option>
+                  }
+                </select>
+                @if (form.get('categoryId')?.invalid && form.get('categoryId')?.touched) {
+                  <p class="text-red-500 text-xs mt-1">Categoría es requerida</p>
+                }
+              </div>
+
+              <!-- Subcategoría (Opcional) -->
+              <div>
+                <label class="block text-sm font-medium text-text-secondary mb-1">Subcategoría <span class="text-text-secondary text-xs">(Opcional)</span></label>
                 <select formControlName="subcategoryId"
                         class="w-full px-3 py-2 bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary transition">
+                  <option value="">Sin subcategoría (producto directo)</option>
                   @for (subcat of subcategories(); track subcat.id) {
                     <option [value]="subcat.id">{{ subcat.name }}</option>
                   }
                 </select>
+                <p class="text-text-secondary text-xs mt-1">Si no seleccionas, el producto aparecerá directamente en la categoría.</p>
               </div>
 
               <!-- Orden -->
@@ -384,9 +401,10 @@ export class AdminProductsPage implements OnInit {
 
   // ✅ Formulario con validaciones
   protected readonly form = this.fb.group({
+    categoryId: ['', [Validators.required]],
+    subcategoryId: [''], // ✅ Opcional
     name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
     price: [0, [Validators.required, Validators.min(0.01)]],
-    subcategoryId: [1, [Validators.required]],
     description: ['', [Validators.maxLength(500)]],
     image: ['', [Validators.pattern(/^https?:\/\/.+/)]],
     order: [0, [Validators.required]],
@@ -441,13 +459,22 @@ export class AdminProductsPage implements OnInit {
     this.isPortrait.set(this.checkIsPortrait());
   }
 
-  protected getSubcategoryName(subcategoryId: number): string {
+  protected getSubcategoryName(subcategoryId?: number): string {
+    if (!subcategoryId) return 'Directo';
     return this.subcategories().find(s => s.id === subcategoryId)?.name ?? 'Sin categoría';
   }
 
   protected openCreateForm(): void {
     this.editingId.set(null);
-    this.form.reset({ name: '', price: 0, subcategoryId: 1, description: '', image: '', order: this.getNextOrder() });
+    this.form.reset({ 
+      categoryId: '', 
+      subcategoryId: '', 
+      name: '', 
+      price: 0, 
+      description: '', 
+      image: '', 
+      order: this.getNextOrder() 
+    });
     this.formError.set(null);
     this.showForm.set(true);
   }
@@ -455,9 +482,10 @@ export class AdminProductsPage implements OnInit {
   protected openEditForm(product: Product): void {
     this.editingId.set(product.id);
     this.form.reset({
+      categoryId: product.categoryId ? String(product.categoryId) : '',
+      subcategoryId: product.subcategoryId ? String(product.subcategoryId) : '',
       name: product.name,
       price: product.price,
-      subcategoryId: product.subcategoryId,
       description: product.description ?? '',
       image: product.image ?? '',
       order: product.order,
@@ -484,9 +512,10 @@ export class AdminProductsPage implements OnInit {
     try {
       const value = this.form.getRawValue();
       const product: Omit<Product, 'id'> = {
+        categoryId: value.categoryId ? Number(value.categoryId) : undefined,
+        subcategoryId: value.subcategoryId ? Number(value.subcategoryId) : undefined,
         name: value.name ?? '',
         price: value.price ?? 0,
-        subcategoryId: value.subcategoryId ?? 1,
         description: value.description ?? '',
         image: value.image ?? '',
         order: value.order ?? 0,
