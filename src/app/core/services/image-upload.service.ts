@@ -39,11 +39,16 @@ export class ImageUploadService {
    * 4. Retornar URL pública
    * 
    * @param file - Archivo del usuario
+   * @param productId - ID del producto (opcional). Si existe, la imagen usará nombre fijo: product-{id}.jpg y se pisará al actualizar
    * @returns Promise con URL pública de la imagen
    * @throws Error si algo falla
    */
-  async uploadProductImage(file: File): Promise<string> {
-    const fileName = this.imageOpt.generateUniqueFileName(file.name, 'product');
+  async uploadProductImage(file: File, productId?: number): Promise<string> {
+    // ✅ Si hay productId, usar nombre fijo para que se pise al actualizar
+    // Si no, generar nombre único (para productos nuevos)
+    const fileName = productId 
+      ? `product-${productId}${this.getFileExtension(file.name)}`
+      : this.imageOpt.generateUniqueFileName(file.name, 'product');
     
     this.uploading.set({
       fileName,
@@ -126,22 +131,6 @@ export class ImageUploadService {
   }
 
   /**
-   * ✅ Elimina una imagen del almacenamiento
-   * (útil si el admin quiere reemplazar una imagen)
-   */
-  async deleteImage(fileName: string): Promise<void> {
-    try {
-      const remotePath = `${this.UPLOAD_FOLDER}/${fileName}`;
-      await this.supabase.deleteFile(this.BUCKET_NAME, remotePath);
-      this.notification.success('Imagen eliminada');
-    } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
-      this.notification.error(`Error al eliminar: ${errorMsg}`);
-      throw error;
-    }
-  }
-
-  /**
    * ✅ Sube el Blob a Supabase
    */
   private async uploadBlob(blob: Blob, remotePath: string): Promise<string> {
@@ -172,6 +161,14 @@ export class ImageUploadService {
       .getPublicUrl(remotePath);
 
     return data.publicUrl;
+  }
+
+  /**
+   * ✅ Obtiene la extensión de un archivo de manera segura
+   */
+  private getFileExtension(fileName: string): string {
+    const match = fileName.match(/\.[^.]*$/);
+    return match ? match[0] : '.jpg';
   }
 
   /**

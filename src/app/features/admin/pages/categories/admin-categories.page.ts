@@ -93,7 +93,8 @@ import { SubcategoryService } from '../../../menu/services/subcategory.service';
             </thead>
             <tbody>
               @for (category of filteredCategories(); track category.id) {
-                <tr class="border-b border-border last:border-0 hover:bg-background transition">
+                <tr class="border-b border-border last:border-0 hover:bg-background transition cursor-pointer"
+                    (click)="openEditForm(category)">
                   <td class="px-4 py-3">
                     <span class="font-medium text-text-primary">{{ category.name }}</span>
                   </td>
@@ -107,18 +108,11 @@ import { SubcategoryService } from '../../../menu/services/subcategory.service';
                     <div class="flex items-center justify-center gap-2">
                       <button
                         type="button"
-                        (click)="openEditForm(category)"
-                        [disabled]="isLoading()"
-                        class="p-2 rounded hover:bg-border transition disabled:opacity-50 disabled:cursor-not-allowed">
-                        <span class="material-icons text-sm text-primary">edit</span>
-                      </button>
-                      <button
-                        type="button"
-                        (click)="deleteCategory(category.id)"
+                        (click)="deleteCategory(category.id); $event.stopPropagation()"
                         [disabled]="isLoading() || hasSubcategories(category.id)"
                         [title]="hasSubcategories(category.id) ? 'No puedes eliminar una categoría que tiene subcategorías' : 'Eliminar'"
                         class="p-2 rounded hover:bg-border transition disabled:opacity-50 disabled:cursor-not-allowed">
-                        <span class="material-icons text-sm text-red-500">delete</span>
+                        <span class="material-icons text-sm text-red-500">close</span>
                       </button>
                     </div>
                   </td>

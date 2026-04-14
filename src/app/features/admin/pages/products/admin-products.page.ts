@@ -107,7 +107,8 @@ import { StorageIndicatorComponent } from '../../components/storage-indicator/st
             </thead>
             <tbody>
               @for (product of filteredProducts(); track product.id) {
-                <tr class="border-b border-border last:border-0 hover:bg-background transition">
+                <tr class="border-b border-border last:border-0 hover:bg-background transition cursor-pointer"
+                    (click)="openEditForm(product)">
                   <td class="px-4 py-3">
                     <div class="flex items-center gap-3">
                       @if (product.image) {
@@ -134,17 +135,10 @@ import { StorageIndicatorComponent } from '../../components/storage-indicator/st
                     <div class="flex items-center justify-center gap-2">
                       <button
                         type="button"
-                        (click)="openEditForm(product)"
-                        class="p-1.5 rounded-lg hover:bg-primary/10 text-primary transition"
-                        aria-label="Editar">
-                        <span class="material-icons text-lg">edit</span>
-                      </button>
-                      <button
-                        type="button"
-                        (click)="deleteProduct(product.id)"
+                        (click)="deleteProduct(product.id); $event.stopPropagation()"
                         class="p-1.5 rounded-lg hover:bg-red-500/10 text-red-500 transition"
                         aria-label="Eliminar">
-                        <span class="material-icons text-lg">delete</span>
+                        <span class="material-icons text-lg">close</span>
                       </button>
                     </div>
                   </td>
@@ -619,7 +613,9 @@ export class AdminProductsPage implements OnInit {
       this.isUploadingImage.set(true);
       this.uploadImageProgress.set(0);
 
-      const url = await this.imageUploadService.uploadProductImage(file);
+      // Pasar editingId si estamos editando un producto (para que pise la imagen anterior)
+      const productId = this.editingId() ?? undefined;
+      const url = await this.imageUploadService.uploadProductImage(file, productId);
 
       // Llenar el campo imagen automáticamente
       this.form.patchValue({ image: url });

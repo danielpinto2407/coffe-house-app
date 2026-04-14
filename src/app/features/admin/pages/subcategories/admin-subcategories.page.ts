@@ -119,7 +119,8 @@ import { ProductService } from '../../../menu/services/product.service';
             </thead>
             <tbody>
               @for (subcategory of filteredSubcategories(); track subcategory.id) {
-                <tr class="border-b border-border last:border-0 hover:bg-background transition">
+                <tr class="border-b border-border last:border-0 hover:bg-background transition cursor-pointer"
+                    (click)="openEditForm(subcategory)">
                   <td class="px-4 py-3">
                     <span class="font-medium text-text-primary">{{ subcategory.name }}</span>
                   </td>
@@ -136,18 +137,11 @@ import { ProductService } from '../../../menu/services/product.service';
                     <div class="flex items-center justify-center gap-2">
                       <button
                         type="button"
-                        (click)="openEditForm(subcategory)"
-                        [disabled]="isLoading()"
-                        class="p-2 rounded hover:bg-border transition disabled:opacity-50 disabled:cursor-not-allowed">
-                        <span class="material-icons text-sm text-primary">edit</span>
-                      </button>
-                      <button
-                        type="button"
-                        (click)="deleteSubcategory(subcategory.id)"
+                        (click)="deleteSubcategory(subcategory.id); $event.stopPropagation()"
                         [disabled]="isLoading() || hasProducts(subcategory.id)"
                         [title]="hasProducts(subcategory.id) ? 'No puedes eliminar una subcategoría que tiene productos' : 'Eliminar'"
                         class="p-2 rounded hover:bg-border transition disabled:opacity-50 disabled:cursor-not-allowed">
-                        <span class="material-icons text-sm text-red-500">delete</span>
+                        <span class="material-icons text-sm text-red-500">close</span>
                       </button>
                     </div>
                   </td>
