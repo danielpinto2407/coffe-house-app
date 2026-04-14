@@ -1,7 +1,7 @@
 export interface Product {
   id: number;
-  categoryId?: number;      // ✅ Nuevo: relación directa a categoría (opcional)
-  subcategoryId?: number;   // ✅ Ahora opcional - permite productos sin subcategoría
+  categoryId?: number;           // ✅ Nuevo: relación directa a categoría (opcional)
+  subcategoryId?: number | null; // ✅ Ahora opcional - permite productos sin subcategoría (null = directo)
   name: string;
   price: number;
   image?: string;

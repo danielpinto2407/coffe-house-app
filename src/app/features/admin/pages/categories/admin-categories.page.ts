@@ -12,6 +12,7 @@ import { RouterLink } from '@angular/router';
 import { Category } from '../../../menu/models/category.model';
 import { CategoryService } from '../../../menu/services/category.service';
 import { SubcategoryService } from '../../../menu/services/subcategory.service';
+import { ConfirmationService } from '../../../../core/services/confirmation.service';
 
 @Component({
   selector: 'app-admin-categories',
@@ -93,7 +94,8 @@ import { SubcategoryService } from '../../../menu/services/subcategory.service';
             </thead>
             <tbody>
               @for (category of filteredCategories(); track category.id) {
-                <tr class="border-b border-border last:border-0 hover:bg-background transition">
+                <tr class="border-b border-border last:border-0 hover:bg-background transition cursor-pointer"
+                    (click)="openEditForm(category)">
                   <td class="px-4 py-3">
                     <span class="font-medium text-text-primary">{{ category.name }}</span>
                   </td>
@@ -107,18 +109,11 @@ import { SubcategoryService } from '../../../menu/services/subcategory.service';
                     <div class="flex items-center justify-center gap-2">
                       <button
                         type="button"
-                        (click)="openEditForm(category)"
-                        [disabled]="isLoading()"
-                        class="p-2 rounded hover:bg-border transition disabled:opacity-50 disabled:cursor-not-allowed">
-                        <span class="material-icons text-sm text-primary">edit</span>
-                      </button>
-                      <button
-                        type="button"
-                        (click)="deleteCategory(category.id)"
+                        (click)="deleteCategory(category.id); $event.stopPropagation()"
                         [disabled]="isLoading() || hasSubcategories(category.id)"
                         [title]="hasSubcategories(category.id) ? 'No puedes eliminar una categoría que tiene subcategorías' : 'Eliminar'"
                         class="p-2 rounded hover:bg-border transition disabled:opacity-50 disabled:cursor-not-allowed">
-                        <span class="material-icons text-sm text-red-500">delete</span>
+                        <span class="material-icons text-sm text-red-500">close</span>
                       </button>
                     </div>
                   </td>
@@ -240,6 +235,7 @@ export class AdminCategoriesPage implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly categoryService = inject(CategoryService);
   private readonly subcategoryService = inject(SubcategoryService);
+  private readonly confirmationService = inject(ConfirmationService);
 
   // Signals del estado
   protected readonly isLoading = computed(() => this.categoryService.loading());
@@ -349,7 +345,14 @@ export class AdminCategoriesPage implements OnInit {
       return;
     }
 
-    if (!confirm('¿Estás seguro que deseas eliminar esta categoría?')) return;
+    const confirmed = await this.confirmationService.confirm({
+      title: 'Eliminar categoría',
+      message: '¿Estás seguro que deseas eliminar esta categoría?',
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar',
+      type: 'danger'
+    });
+    if (!confirmed) return;
 
     this.isSaving.set(true);
 

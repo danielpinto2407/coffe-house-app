@@ -18,6 +18,7 @@ import { CategoryService } from '../../../menu/services/category.service';
 import { SubcategoryService } from '../../../menu/services/subcategory.service';
 import { ImageUploadService } from '../../../../core/services/image-upload.service';
 import { ImageOptimizationService } from '../../../../core/services/image-optimization.service';
+import { ConfirmationService } from '../../../../core/services/confirmation.service';
 import { StorageIndicatorComponent } from '../../components/storage-indicator/storage-indicator.component';
 
 @Component({
@@ -107,7 +108,8 @@ import { StorageIndicatorComponent } from '../../components/storage-indicator/st
             </thead>
             <tbody>
               @for (product of filteredProducts(); track product.id) {
-                <tr class="border-b border-border last:border-0 hover:bg-background transition">
+                <tr class="border-b border-border last:border-0 hover:bg-background transition cursor-pointer"
+                    (click)="openEditForm(product)">
                   <td class="px-4 py-3">
                     <div class="flex items-center gap-3">
                       @if (product.image) {
@@ -134,17 +136,10 @@ import { StorageIndicatorComponent } from '../../components/storage-indicator/st
                     <div class="flex items-center justify-center gap-2">
                       <button
                         type="button"
-                        (click)="openEditForm(product)"
-                        class="p-1.5 rounded-lg hover:bg-primary/10 text-primary transition"
-                        aria-label="Editar">
-                        <span class="material-icons text-lg">edit</span>
-                      </button>
-                      <button
-                        type="button"
-                        (click)="deleteProduct(product.id)"
+                        (click)="deleteProduct(product.id); $event.stopPropagation()"
                         class="p-1.5 rounded-lg hover:bg-red-500/10 text-red-500 transition"
                         aria-label="Eliminar">
-                        <span class="material-icons text-lg">delete</span>
+                        <span class="material-icons text-lg">close</span>
                       </button>
                     </div>
                   </td>
@@ -211,7 +206,7 @@ import { StorageIndicatorComponent } from '../../components/storage-indicator/st
                         class="w-full px-3 py-2 bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary transition">
                   <option value="">Selecciona categoría...</option>
                   @for (cat of categories(); track cat.id) {
-                    <option [value]="cat.id">{{ cat.name }}</option>
+                    <option [value]="stringifyId(cat.id)">{{ cat.name }}</option>
                   }
                 </select>
                 @if (form.get('categoryId')?.invalid && form.get('categoryId')?.touched) {
@@ -226,7 +221,7 @@ import { StorageIndicatorComponent } from '../../components/storage-indicator/st
                         class="w-full px-3 py-2 bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary transition">
                   <option value="">Sin subcategoría (producto directo)</option>
                   @for (subcat of subcategories(); track subcat.id) {
-                    <option [value]="subcat.id">{{ subcat.name }}</option>
+                    <option [value]="stringifyId(subcat.id)">{{ subcat.name }}</option>
                   }
                 </select>
                 <p class="text-text-secondary text-xs mt-1">Si no seleccionas, el producto aparecerá directamente en la categoría.</p>
@@ -363,6 +358,7 @@ export class AdminProductsPage implements OnInit {
   private readonly subcategoryService = inject(SubcategoryService);
   private readonly imageUploadService = inject(ImageUploadService);
   private readonly imageOptimization = inject(ImageOptimizationService);
+  private readonly confirmationService = inject(ConfirmationService);
 
   // ✅ SIGNALS: Estado reactivo desde servicios
   protected readonly isLoading = computed(() => this.productService.loading());
@@ -406,7 +402,7 @@ export class AdminProductsPage implements OnInit {
     name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
     price: [0, [Validators.required, Validators.min(0.01)]],
     description: ['', [Validators.maxLength(500)]],
-    image: ['', [Validators.pattern(/^https?:\/\/.+/)]],
+    image: ['', [Validators.pattern(/^(https?:\/\/.+)?$/)]],
     order: [0, [Validators.required]],
   });
 
@@ -459,9 +455,13 @@ export class AdminProductsPage implements OnInit {
     this.isPortrait.set(this.checkIsPortrait());
   }
 
-  protected getSubcategoryName(subcategoryId?: number): string {
+  protected getSubcategoryName(subcategoryId?: number | null): string {
     if (!subcategoryId) return 'Directo';
     return this.subcategories().find(s => s.id === subcategoryId)?.name ?? 'Sin categoría';
+  }
+
+  protected stringifyId(id: number): string {
+    return String(id);
   }
 
   protected openCreateForm(): void {
@@ -513,7 +513,7 @@ export class AdminProductsPage implements OnInit {
       const value = this.form.getRawValue();
       const product: Omit<Product, 'id'> = {
         categoryId: value.categoryId ? Number(value.categoryId) : undefined,
-        subcategoryId: value.subcategoryId ? Number(value.subcategoryId) : undefined,
+        subcategoryId: value.subcategoryId && value.subcategoryId !== '' ? Number(value.subcategoryId) : null,
         name: value.name ?? '',
         price: value.price ?? 0,
         description: value.description ?? '',
@@ -537,9 +537,15 @@ export class AdminProductsPage implements OnInit {
   }
 
   protected async deleteProduct(id: number): Promise<void> {
-    if (!confirm('¿Seguro que deseas eliminar este producto? Esta acción no se puede deshacer.')) {
-      return;
-    }
+    const confirmed = await this.confirmationService.confirm({
+      title: 'Eliminar producto',
+      message: '¿Seguro que deseas eliminar este producto? Esta acción no se puede deshacer.',
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar',
+      type: 'danger'
+    });
+
+    if (!confirmed) return;
 
     try {
       await this.productService.deleteProduct(id);
@@ -619,7 +625,9 @@ export class AdminProductsPage implements OnInit {
       this.isUploadingImage.set(true);
       this.uploadImageProgress.set(0);
 
-      const url = await this.imageUploadService.uploadProductImage(file);
+      // Pasar editingId si estamos editando un producto (para que pise la imagen anterior)
+      const productId = this.editingId() ?? undefined;
+      const url = await this.imageUploadService.uploadProductImage(file, productId);
 
       // Llenar el campo imagen automáticamente
       this.form.patchValue({ image: url });

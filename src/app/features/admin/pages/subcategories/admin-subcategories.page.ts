@@ -13,6 +13,7 @@ import { Subcategory } from '../../../menu/models/subcategory.model';
 import { SubcategoryService } from '../../../menu/services/subcategory.service';
 import { CategoryService } from '../../../menu/services/category.service';
 import { ProductService } from '../../../menu/services/product.service';
+import { ConfirmationService } from '../../../../core/services/confirmation.service';
 
 @Component({
   selector: 'app-admin-subcategories',
@@ -119,7 +120,8 @@ import { ProductService } from '../../../menu/services/product.service';
             </thead>
             <tbody>
               @for (subcategory of filteredSubcategories(); track subcategory.id) {
-                <tr class="border-b border-border last:border-0 hover:bg-background transition">
+                <tr class="border-b border-border last:border-0 hover:bg-background transition cursor-pointer"
+                    (click)="openEditForm(subcategory)">
                   <td class="px-4 py-3">
                     <span class="font-medium text-text-primary">{{ subcategory.name }}</span>
                   </td>
@@ -136,18 +138,11 @@ import { ProductService } from '../../../menu/services/product.service';
                     <div class="flex items-center justify-center gap-2">
                       <button
                         type="button"
-                        (click)="openEditForm(subcategory)"
-                        [disabled]="isLoading()"
-                        class="p-2 rounded hover:bg-border transition disabled:opacity-50 disabled:cursor-not-allowed">
-                        <span class="material-icons text-sm text-primary">edit</span>
-                      </button>
-                      <button
-                        type="button"
-                        (click)="deleteSubcategory(subcategory.id)"
+                        (click)="deleteSubcategory(subcategory.id); $event.stopPropagation()"
                         [disabled]="isLoading() || hasProducts(subcategory.id)"
                         [title]="hasProducts(subcategory.id) ? 'No puedes eliminar una subcategoría que tiene productos' : 'Eliminar'"
                         class="p-2 rounded hover:bg-border transition disabled:opacity-50 disabled:cursor-not-allowed">
-                        <span class="material-icons text-sm text-red-500">delete</span>
+                        <span class="material-icons text-sm text-red-500">close</span>
                       </button>
                     </div>
                   </td>
@@ -288,6 +283,7 @@ export class AdminSubcategoriesPage implements OnInit {
   private readonly subcategoryService = inject(SubcategoryService);
   private readonly categoryService = inject(CategoryService);
   private readonly productService = inject(ProductService);
+  private readonly confirmationService = inject(ConfirmationService);
 
   // Signals del estado
   protected readonly isLoading = computed(() => this.subcategoryService.loading());
@@ -417,7 +413,14 @@ export class AdminSubcategoriesPage implements OnInit {
       return;
     }
 
-    if (!confirm('¿Estás seguro que deseas eliminar esta subcategoría?')) return;
+    const confirmed = await this.confirmationService.confirm({
+      title: 'Eliminar subcategoría',
+      message: '¿Estás seguro que deseas eliminar esta subcategoría?',
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar',
+      type: 'danger'
+    });
+    if (!confirmed) return;
 
     this.isSaving.set(true);
 
