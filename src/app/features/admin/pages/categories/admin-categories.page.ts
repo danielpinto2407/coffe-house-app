@@ -12,6 +12,7 @@ import { RouterLink } from '@angular/router';
 import { Category } from '../../../menu/models/category.model';
 import { CategoryService } from '../../../menu/services/category.service';
 import { SubcategoryService } from '../../../menu/services/subcategory.service';
+import { ConfirmationService } from '../../../../core/services/confirmation.service';
 
 @Component({
   selector: 'app-admin-categories',
@@ -234,6 +235,7 @@ export class AdminCategoriesPage implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly categoryService = inject(CategoryService);
   private readonly subcategoryService = inject(SubcategoryService);
+  private readonly confirmationService = inject(ConfirmationService);
 
   // Signals del estado
   protected readonly isLoading = computed(() => this.categoryService.loading());
@@ -343,7 +345,14 @@ export class AdminCategoriesPage implements OnInit {
       return;
     }
 
-    if (!confirm('¿Estás seguro que deseas eliminar esta categoría?')) return;
+    const confirmed = await this.confirmationService.confirm({
+      title: 'Eliminar categoría',
+      message: '¿Estás seguro que deseas eliminar esta categoría?',
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar',
+      type: 'danger'
+    });
+    if (!confirmed) return;
 
     this.isSaving.set(true);
 

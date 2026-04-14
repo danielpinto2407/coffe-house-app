@@ -4,13 +4,14 @@ import { Router, RouterOutlet } from '@angular/router';
 import { HeaderComponent } from './shared/header/header.component';
 import { ProductModalComponent } from './overlays/product-modal/product-modal.component';
 import { CartOverlayComponent } from './overlays/cart-overlay/cart-overlay.component';
+import { ConfirmationDialogComponent } from './overlays/confirmation-dialog/confirmation-dialog.component';
 import { NotificationContainerComponent } from './core/components/notification-container/notification-container.component';
 import { ThemeService } from './core/services/theme.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, HeaderComponent, ProductModalComponent, CartOverlayComponent, NotificationContainerComponent],
+  imports: [CommonModule, RouterOutlet, HeaderComponent, ProductModalComponent, CartOverlayComponent, ConfirmationDialogComponent, NotificationContainerComponent],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush

@@ -13,6 +13,7 @@ import { Subcategory } from '../../../menu/models/subcategory.model';
 import { SubcategoryService } from '../../../menu/services/subcategory.service';
 import { CategoryService } from '../../../menu/services/category.service';
 import { ProductService } from '../../../menu/services/product.service';
+import { ConfirmationService } from '../../../../core/services/confirmation.service';
 
 @Component({
   selector: 'app-admin-subcategories',
@@ -282,6 +283,7 @@ export class AdminSubcategoriesPage implements OnInit {
   private readonly subcategoryService = inject(SubcategoryService);
   private readonly categoryService = inject(CategoryService);
   private readonly productService = inject(ProductService);
+  private readonly confirmationService = inject(ConfirmationService);
 
   // Signals del estado
   protected readonly isLoading = computed(() => this.subcategoryService.loading());
@@ -411,7 +413,14 @@ export class AdminSubcategoriesPage implements OnInit {
       return;
     }
 
-    if (!confirm('¿Estás seguro que deseas eliminar esta subcategoría?')) return;
+    const confirmed = await this.confirmationService.confirm({
+      title: 'Eliminar subcategoría',
+      message: '¿Estás seguro que deseas eliminar esta subcategoría?',
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar',
+      type: 'danger'
+    });
+    if (!confirmed) return;
 
     this.isSaving.set(true);
 

@@ -18,6 +18,7 @@ import { CategoryService } from '../../../menu/services/category.service';
 import { SubcategoryService } from '../../../menu/services/subcategory.service';
 import { ImageUploadService } from '../../../../core/services/image-upload.service';
 import { ImageOptimizationService } from '../../../../core/services/image-optimization.service';
+import { ConfirmationService } from '../../../../core/services/confirmation.service';
 import { StorageIndicatorComponent } from '../../components/storage-indicator/storage-indicator.component';
 
 @Component({
@@ -357,6 +358,7 @@ export class AdminProductsPage implements OnInit {
   private readonly subcategoryService = inject(SubcategoryService);
   private readonly imageUploadService = inject(ImageUploadService);
   private readonly imageOptimization = inject(ImageOptimizationService);
+  private readonly confirmationService = inject(ConfirmationService);
 
   // ✅ SIGNALS: Estado reactivo desde servicios
   protected readonly isLoading = computed(() => this.productService.loading());
@@ -531,9 +533,15 @@ export class AdminProductsPage implements OnInit {
   }
 
   protected async deleteProduct(id: number): Promise<void> {
-    if (!confirm('¿Seguro que deseas eliminar este producto? Esta acción no se puede deshacer.')) {
-      return;
-    }
+    const confirmed = await this.confirmationService.confirm({
+      title: 'Eliminar producto',
+      message: '¿Seguro que deseas eliminar este producto? Esta acción no se puede deshacer.',
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar',
+      type: 'danger'
+    });
+
+    if (!confirmed) return;
 
     try {
       await this.productService.deleteProduct(id);
