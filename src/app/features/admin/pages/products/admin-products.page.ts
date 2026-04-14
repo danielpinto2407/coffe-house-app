@@ -206,7 +206,7 @@ import { StorageIndicatorComponent } from '../../components/storage-indicator/st
                         class="w-full px-3 py-2 bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary transition">
                   <option value="">Selecciona categoría...</option>
                   @for (cat of categories(); track cat.id) {
-                    <option [value]="cat.id">{{ cat.name }}</option>
+                    <option [value]="stringifyId(cat.id)">{{ cat.name }}</option>
                   }
                 </select>
                 @if (form.get('categoryId')?.invalid && form.get('categoryId')?.touched) {
@@ -221,7 +221,7 @@ import { StorageIndicatorComponent } from '../../components/storage-indicator/st
                         class="w-full px-3 py-2 bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary transition">
                   <option value="">Sin subcategoría (producto directo)</option>
                   @for (subcat of subcategories(); track subcat.id) {
-                    <option [value]="subcat.id">{{ subcat.name }}</option>
+                    <option [value]="stringifyId(subcat.id)">{{ subcat.name }}</option>
                   }
                 </select>
                 <p class="text-text-secondary text-xs mt-1">Si no seleccionas, el producto aparecerá directamente en la categoría.</p>
@@ -402,7 +402,7 @@ export class AdminProductsPage implements OnInit {
     name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
     price: [0, [Validators.required, Validators.min(0.01)]],
     description: ['', [Validators.maxLength(500)]],
-    image: ['', [Validators.pattern(/^https?:\/\/.+/)]],
+    image: ['', [Validators.pattern(/^(https?:\/\/.+)?$/)]],
     order: [0, [Validators.required]],
   });
 
@@ -455,9 +455,13 @@ export class AdminProductsPage implements OnInit {
     this.isPortrait.set(this.checkIsPortrait());
   }
 
-  protected getSubcategoryName(subcategoryId?: number): string {
+  protected getSubcategoryName(subcategoryId?: number | null): string {
     if (!subcategoryId) return 'Directo';
     return this.subcategories().find(s => s.id === subcategoryId)?.name ?? 'Sin categoría';
+  }
+
+  protected stringifyId(id: number): string {
+    return String(id);
   }
 
   protected openCreateForm(): void {
@@ -509,7 +513,7 @@ export class AdminProductsPage implements OnInit {
       const value = this.form.getRawValue();
       const product: Omit<Product, 'id'> = {
         categoryId: value.categoryId ? Number(value.categoryId) : undefined,
-        subcategoryId: value.subcategoryId ? Number(value.subcategoryId) : undefined,
+        subcategoryId: value.subcategoryId && value.subcategoryId !== '' ? Number(value.subcategoryId) : null,
         name: value.name ?? '',
         price: value.price ?? 0,
         description: value.description ?? '',
