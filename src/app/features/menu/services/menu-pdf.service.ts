@@ -434,6 +434,28 @@ export class MenuPdfService {
         });
       }
 
+      // Mostrar productos asociados directamente a la categoría
+      if (category.products && category.products.length > 0) {
+        content.push(
+          {
+            canvas: [
+              {
+                type: 'line' as const,
+                x1: 0,
+                y1: 0,
+                x2: 515,
+                y2: 0,
+                lineWidth: PDF_CONFIG.content.productLineWidth,
+                lineColor: colors['primary'],
+              },
+            ],
+            margin: [0, 0, 0, 8],
+          },
+          this.buildProductsTableDark(category.products, colors),
+          { text: '', margin: [0, 0, 0, 16] }
+        );
+      }
+
       category.subcategories.forEach((subcategory) => {
         if (subcategory.products.length > 0) {
           content.push(
