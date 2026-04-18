@@ -124,32 +124,15 @@ export class MenuPdfService {
       this.isGenerating.set(true);
       this.pdfError.set(null);
 
-      let logoBase64 = this.cachedLogo();
-      if (!logoBase64) {
-        try {
-          logoBase64 = await this.loadAndValidateLogo('assets/img/logo.png');
-          if (logoBase64) {
-            this.cachedLogo.set(logoBase64);
-          }
-        } catch (error) {
-          // Logo loading failed, continue without it
-        }
-      }
+      const logoBase64 = await this.getLogoBase64();
+      const bgImageBase64 = await this.getBgImageBase64();
 
-      let bgImageBase64 = this.cachedBgImage();
-      const bgPath = this.bgImagePath();
-      if (!bgImageBase64 && bgPath) {
-        try {
-          bgImageBase64 = await this.loadAndValidateLogo(bgPath);
-          if (bgImageBase64) {
-            this.cachedBgImage.set(bgImageBase64);
-          }
-        } catch (error) {
-          // Background image loading failed, use solid color
-        }
-      }
+      // Construir diccionario de imágenes para pdfmake — TODAS las imágenes van aquí
+      const imagesDict = await this.convertMenuImagesToBase64(menuData);
+      if (logoBase64) imagesDict['pdfLogo'] = logoBase64;
+      if (bgImageBase64) imagesDict['pdfBg'] = bgImageBase64;
 
-      const docDefinition = this.buildPdfDefinition(menuData, logoBase64, bgImageBase64);
+      const docDefinition = this.buildPdfDefinition(menuData, logoBase64, bgImageBase64, imagesDict);
       const pdfMake = await getPdfMake();
       const pdf = pdfMake.createPdf(docDefinition);
 
@@ -161,6 +144,30 @@ export class MenuPdfService {
       throw new Error(errorMsg);
     } finally {
       this.isGenerating.set(false);
+    }
+  }
+
+  private async getLogoBase64(): Promise<string> {
+    if (this.cachedLogo()) return this.cachedLogo();
+    try {
+      const logo = await this.loadAndValidateLogo('assets/img/logo.png');
+      if (logo) this.cachedLogo.set(logo);
+      return logo;
+    } catch {
+      return '';
+    }
+  }
+
+  private async getBgImageBase64(): Promise<string> {
+    if (this.cachedBgImage()) return this.cachedBgImage();
+    const bgPath = this.bgImagePath();
+    if (!bgPath) return '';
+    try {
+      const bg = await this.loadAndValidateLogo(bgPath);
+      if (bg) this.cachedBgImage.set(bg);
+      return bg;
+    } catch {
+      return '';
     }
   }
 
@@ -203,25 +210,110 @@ export class MenuPdfService {
     }
   }
 
+  /**
+   * Convierte imágenes de todos los productos a base64 y retorna un diccionario
+   * con clave 'product_<id>' → base64 dataURL para usarse en pdfmake `images`.
+   */
+  private async convertMenuImagesToBase64(menuData: MenuStructure[]): Promise<Record<string, string>> {
+    const imagesDict: Record<string, string> = {};
+    const allProducts: Product[] = [];
+
+    for (const category of menuData) {
+      if (category.products?.length) allProducts.push(...category.products);
+      for (const sub of category.subcategories) {
+        if (sub.products?.length) allProducts.push(...sub.products);
+      }
+    }
+
+    await Promise.all(
+      allProducts.map(async (product) => {
+        if (!product.image) return;
+        // Tamaño fijo 80x80 con cover crop para uniformidad en el PDF
+        const base64 = await this.resolveImageToBase64(product.image, 80);
+        if (base64) {
+          imagesDict[`product_${product.id}`] = base64;
+        }
+      })
+    );
+
+    return imagesDict;
+  }
+
+  private async resolveImageToBase64(image: string, size?: number): Promise<string | null> {
+    if (!image.startsWith('http') && !image.startsWith('assets/') &&
+        !image.startsWith('data:image/jpeg') && !image.startsWith('data:image/png')) return null;
+    try {
+      let blob: Blob;
+      if (image.startsWith('data:')) {
+        const res = await fetch(image);
+        blob = await res.blob();
+      } else {
+        const response = await fetch(image);
+        if (!response.ok) return null;
+        blob = await response.blob();
+      }
+      if (!blob.type.startsWith('image/')) return null;
+      return await this.blobToJpegBase64(blob, size);
+    } catch {
+      return null;
+    }
+  }
+
+  private blobToJpegBase64(blob: Blob, size?: number): Promise<string | null> {
+    return new Promise((resolve) => {
+      const url = URL.createObjectURL(blob);
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const srcW = img.naturalWidth || img.width;
+          const srcH = img.naturalHeight || img.height;
+          const canvas = document.createElement('canvas');
+
+          if (size) {
+            // Cover crop: escala y recorta al cuadrado fijo
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d')!;
+            // Fondo blanco para evitar negro en transparencias
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, size, size);
+            const scale = Math.max(size / srcW, size / srcH);
+            const drawW = srcW * scale;
+            const drawH = srcH * scale;
+            const offsetX = (size - drawW) / 2;
+            const offsetY = (size - drawH) / 2;
+            ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
+          } else {
+            canvas.width = srcW;
+            canvas.height = srcH;
+            const ctx = canvas.getContext('2d')!;
+            ctx.drawImage(img, 0, 0);
+          }
+
+          // Productos: JPEG. Sin size = logo: PNG para preservar transparencia
+          const dataUrl = size
+            ? canvas.toDataURL('image/jpeg', 0.85)
+            : canvas.toDataURL('image/png');
+          resolve(dataUrl.startsWith('data:image/') ? dataUrl : null);
+        } catch {
+          resolve(null);
+        } finally {
+          URL.revokeObjectURL(url);
+        }
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
+      img.src = url;
+    });
+  }
+
   private async loadAndValidateLogo(url: string): Promise<string> {
     const response = await fetch(url);
-
-    if (!response.ok) {
-      throw new Error(`Failed to load logo: ${response.status}`);
-    }
-
-    const contentType = response.headers.get('content-type') ?? '';
-    if (!contentType.startsWith('image/')) {
-      throw new Error(`Invalid logo MIME type: ${contentType}`);
-    }
-
+    if (!response.ok) throw new Error(`Failed to load logo: ${response.status}`);
     const blob = await response.blob();
-
-    if (blob.size > PDF_CONFIG.logo.maxSize * 1024) {
-      return '';
-    }
-
-    return this.blobToBase64(blob);
+    if (!blob.type.startsWith('image/')) throw new Error(`Invalid logo MIME type: ${blob.type}`);
+    // Sin size → PNG preserva transparencia del logo
+    const png = await this.blobToJpegBase64(blob);
+    return png ?? '';
   }
 
   private blobToBase64(blob: Blob): Promise<string> {
@@ -237,13 +329,14 @@ export class MenuPdfService {
   private buildPdfDefinition(
     menuData: MenuStructure[],
     logoBase64: string = '',
-    bgImageBase64: string = ''
+    bgImageBase64: string = '',
+    imagesDict: Record<string, string> = {}
   ): any {
     const currentTheme = this.themeService.currentTheme();
     const colors = this.mapThemeColorsToPdf(currentTheme);
     const { pageSize, pageMargins } = PDF_CONFIG;
 
-    const menuContent = this.buildMenuContentDark(menuData, colors);
+    const menuContent = this.buildMenuContentDark(menuData, colors, imagesDict);
 
     return {
       pageSize,
@@ -251,14 +344,27 @@ export class MenuPdfService {
       footer: (currentPage: number, pageCount: number) =>
         this.buildFooterDark(currentPage, pageCount, colors) as Content,
       content: [
-        ...(logoBase64
+        // ── Marco decorativo superior ────────────────────────────────
+        {
+          canvas: [
+            {
+              type: 'line' as const,
+              x1: 0, y1: 0, x2: 515, y2: 0,
+              lineWidth: 3,
+              lineColor: colors.primary,
+            },
+          ],
+          margin: [0, 0, 0, 0],
+        },
+
+        ...('pdfLogo' in imagesDict
           ? [
               {
-                image: logoBase64,
-                width: PDF_CONFIG.logo.width,
-                height: PDF_CONFIG.logo.height,
+                image: 'pdfLogo',
+                width: 170,
+                height: 170,
                 alignment: 'center' as const,
-                margin: [0, 30, 0, 30],
+                margin: [0, 40, 0, 28],
               },
             ]
           : [
@@ -267,28 +373,39 @@ export class MenuPdfService {
                 fontSize: PDF_CONFIG.portada.emojiSize,
                 alignment: 'center' as const,
                 color: colors.primary,
-                margin: [0, 40, 0, 30],
+                margin: [0, 50, 0, 28],
               },
             ]),
 
+        // ── Línea decorativa antes del título ────────────────────────
+        {
+          canvas: [
+            {
+              type: 'line' as const,
+              x1: PDF_CONFIG.decorativeLine.x1,
+              y1: 0,
+              x2: PDF_CONFIG.decorativeLine.x2,
+              y2: 0,
+              lineWidth: 0.6,
+              lineColor: colors.textMuted,
+            },
+          ],
+          margin: [0, 0, 0, 16],
+        },
+
         {
           text: 'COFFEE HOUSE',
-          fontSize: PDF_CONFIG.portada.titleSize,
-          alignment: 'center' as const,
-          color: colors.text,
-          margin: [0, 0, 0, 30],
-          characterSpacing: 2,
+          style: 'coverTitle',
+          margin: [0, 0, 0, 10],
         },
 
         {
-          text: 'Menu de Especialidades',
-          fontSize: PDF_CONFIG.portada.subtitleSize,
-          alignment: 'center' as const,
-          color: colors.primary,
-          margin: [0, 0, 0, PDF_CONFIG.portada.subtitleMargin],
-          italics: true,
+          text: 'Menú de Especialidades',
+          style: 'coverSubtitle',
+          margin: [0, 0, 0, 20],
         },
 
+        // ── Líneas decorativas dobles ────────────────────────────────
         {
           canvas: [
             {
@@ -310,15 +427,29 @@ export class MenuPdfService {
               lineColor: colors.textMuted,
             },
           ],
-          margin: [0, 0, 0, 20],
+          margin: [0, 0, 0, 70],
         },
 
+        // ── Etiquetas descriptivas centradas ───────────────────────────
         {
-          text: 'Ingredientes frescos - Preparacion artesanal - Atmosfera acogedora',
-          fontSize: 9,
-          alignment: 'center' as const,
-          color: colors.textMuted,
-          italics: true,
+          columns: [
+            { text: '✦ Ingredientes frescos', fontSize: 9, color: colors.textMuted, italics: true, alignment: 'center' },
+            { text: '✦ Preparación artesanal', fontSize: 9, color: colors.textMuted, italics: true, alignment: 'center' },
+            { text: '✦ Atmósfera acogedora', fontSize: 9, color: colors.textMuted, italics: true, alignment: 'center' },
+          ],
+          margin: [0, 0, 0, 50],
+        },
+
+        // ── Marco decorativo inferior portada ────────────────────────
+        {
+          canvas: [
+            {
+              type: 'line' as const,
+              x1: 0, y1: 0, x2: 515, y2: 0,
+              lineWidth: 3,
+              lineColor: colors.primary,
+            },
+          ],
           margin: [0, 0, 0, 0],
           pageBreak: 'after' as const,
         },
@@ -334,9 +465,9 @@ export class MenuPdfService {
       },
 
       background: (_currentPage: number, pageSizeCtx: { width: number; height: number }) =>
-        bgImageBase64
+        'pdfBg' in imagesDict
           ? {
-              image: bgImageBase64,
+              image: 'pdfBg',
               width: pageSizeCtx.width,
               height: pageSizeCtx.height,
               absolutePosition: { x: 0, y: 0 },
@@ -361,8 +492,8 @@ export class MenuPdfService {
         keywords: 'cafe, menu, coffee house, especialidad',
         creator: 'Coffee House App',
         creationDate: new Date(),
-      },
-    };
+      },      // Diccionario de imágenes: pdfmake las carga por clave, evita errores de formato
+      images: imagesDict,    };
   }
 
   private buildFooterDark(
@@ -371,28 +502,43 @@ export class MenuPdfService {
     colors: { textMuted: string; primary: string }
   ) {
     return {
-      columns: [
+      stack: [
         {
-          text: `© ${new Date().getFullYear()} Coffee House`,
-          fontSize: PDF_CONFIG.footer.fontSize,
-          color: colors.textMuted,
-          alignment: 'center',
+          canvas: [
+            {
+              type: 'line' as const,
+              x1: 0, y1: 0, x2: 515, y2: 0,
+              lineWidth: 0.6,
+              lineColor: colors.primary,
+            },
+          ],
         },
-        { text: '', flex: 1 },
         {
-          text: `${currentPage} / ${pageCount}`,
-          fontSize: PDF_CONFIG.footer.fontSize,
-          color: colors.textMuted,
-          alignment: 'center',
+          columns: [
+            {
+              text: `© ${new Date().getFullYear()} Coffee House`,
+              fontSize: PDF_CONFIG.footer.fontSize,
+              color: colors.textMuted,
+              alignment: 'left',
+            },
+            {
+              text: `${currentPage} / ${pageCount}`,
+              fontSize: PDF_CONFIG.footer.fontSize,
+              color: colors.textMuted,
+              alignment: 'right',
+            },
+          ],
+          margin: [0, 5, 0, 0],
         },
       ],
-      margin: [0, 10, 0, 10],
+      margin: [40, 6, 40, 0],
     };
   }
 
   private buildMenuContentDark(
     menuData: MenuStructure[],
-    colors: PdfColors
+    colors: PdfColors,
+    imagesDict: Record<string, string> = {}
   ): any[] {
     const content: any[] = [];
 
@@ -401,35 +547,33 @@ export class MenuPdfService {
         content.push({ text: '', pageBreak: 'before' as const });
       }
 
-      content.push(
-        {
-          text: category.name.toUpperCase(),
-          style: 'categoryTitleDark',
-          margin: [0, 0, 0, 10],
-        },
-        {
-          canvas: [
+      // ── Banner de categoría ──────────────────────────────────────
+      content.push({
+        table: {
+          widths: ['*'],
+          body: [[
             {
-              type: 'line' as const,
-              x1: 0,
-              y1: 0,
-              x2: 515,
-              y2: 0,
-              lineWidth: PDF_CONFIG.content.dottedLineWidth,
-              lineColor: colors['primary'],
-              dash: { length: 3, space: 3 },
+              text: category.name.toUpperCase(),
+              fontSize: PDF_CONFIG.content.categoryTitleSize,
+              bold: true,
+              color: '#FFFFFF',
+              alignment: 'center' as const,
+              characterSpacing: 3,
+              margin: [0, 11, 0, 11],
+              fillColor: colors['primary'],
             },
-          ],
-          margin: [0, 0, 0, 12],
-        }
-      );
+          ]],
+        },
+        layout: 'noBorders',
+        margin: [0, 0, 0, 14],
+      });
 
       if (category.description) {
         content.push({
           text: category.description,
           fontSize: PDF_CONFIG.content.descriptionSize,
           color: colors['textMuted'],
-          margin: [0, 0, 0, 10],
+          margin: [4, 0, 0, 10],
           italics: true,
         });
       }
@@ -437,62 +581,37 @@ export class MenuPdfService {
       // Mostrar productos asociados directamente a la categoría
       if (category.products && category.products.length > 0) {
         content.push(
-          {
-            canvas: [
-              {
-                type: 'line' as const,
-                x1: 0,
-                y1: 0,
-                x2: 515,
-                y2: 0,
-                lineWidth: PDF_CONFIG.content.productLineWidth,
-                lineColor: colors['primary'],
-              },
-            ],
-            margin: [0, 0, 0, 8],
-          },
-          this.buildProductsTableDark(category.products, colors),
+          this.buildProductsTableDark(category.products, colors, imagesDict),
           { text: '', margin: [0, 0, 0, 16] }
         );
       }
 
       category.subcategories.forEach((subcategory) => {
         if (subcategory.products.length > 0) {
+          // ── Encabezado de subcategoría con acento izquierdo ──────
           content.push(
             {
-              canvas: [
+              columns: [
                 {
-                  type: 'line' as const,
-                  x1: 0,
-                  y1: 0,
-                  x2: 515,
-                  y2: 0,
-                  lineWidth: PDF_CONFIG.content.productLineWidth,
-                  lineColor: colors['primary'],
+                  canvas: [
+                    {
+                      type: 'rect' as const,
+                      x: 0, y: 0, w: 4, h: 18,
+                      r: 2,
+                      color: colors['primary'],
+                    },
+                  ],
+                  width: 12,
+                },
+                {
+                  text: subcategory.name,
+                  style: 'subcategoryTitle',
+                  margin: [4, 1, 0, 0],
                 },
               ],
-              margin: [0, 0, 0, 8],
+              margin: [0, 8, 0, 10],
             },
-            {
-              text: subcategory.name,
-              style: 'subcategoryTitle',
-              margin: [0, 0, 0, 6],
-            },
-            {
-              canvas: [
-                {
-                  type: 'line' as const,
-                  x1: 0,
-                  y1: 0,
-                  x2: 515,
-                  y2: 0,
-                  lineWidth: PDF_CONFIG.content.productLineWidth,
-                  lineColor: colors['primary'],
-                },
-              ],
-              margin: [0, 0, 0, 10],
-            },
-            this.buildProductsTableDark(subcategory.products, colors),
+            this.buildProductsTableDark(subcategory.products, colors, imagesDict),
             { text: '', margin: [0, 0, 0, 16] }
           );
         }
@@ -504,55 +623,94 @@ export class MenuPdfService {
 
   private buildProductsTableDark(
     products: Product[],
-    colors: PdfColors
+    colors: PdfColors,
+    imagesDict: Record<string, string> = {}
   ): any {
-    const rows: any[] = [];
+    /** Construye la tarjeta individual de un producto */
+    const buildCard = (product: Product | null): any => {
+      if (!product) {
+        // Celda vacía transparente para completar la fila
+        return { text: '', margin: [0, 0, 0, 0] };
+      }
 
-    products.forEach((product) => {
-      rows.push({
-        columns: [
-          {
-            text: product.name,
-            fontSize: 11,
-            color: colors['text'],
-            width: '60%',
-          },
-          {
-            text: `$${product.price?.toLocaleString('es-CO') ?? '0'}`,
-            fontSize: 11,
-            color: colors['primary'],
-            alignment: 'right',
-            width: '40%',
-          },
-        ],
-        margin: [0, 0, 0, 2],
-      });
+      const imageKey = `product_${product.id}`;
+      const hasImage = imageKey in imagesDict;
+
+      const imageCell: any = hasImage
+        ? { image: imageKey, width: 62, height: 62, margin: [7, 7, 6, 7] }
+        : {
+            canvas: [
+              { type: 'rect' as const, x: 0, y: 0, w: 62, h: 62, r: 4, color: colors['bgDark'] },
+              { type: 'line' as const, x1: 20, y1: 31, x2: 42, y2: 31, lineWidth: 1.5, lineColor: colors['textMuted'] },
+              { type: 'line' as const, x1: 31, y1: 20, x2: 31, y2: 42, lineWidth: 1.5, lineColor: colors['textMuted'] },
+            ],
+            width: 62,
+            margin: [7, 7, 6, 7],
+          };
+
+      const infoStack: any[] = [
+        {
+          text: product.name,
+          fontSize: 10,
+          bold: true,
+          color: colors['text'],
+          margin: [0, 0, 0, 3],
+        },
+      ];
 
       if (product.description) {
-        rows.push({
+        infoStack.push({
           text: product.description,
-          fontSize: 9,
+          fontSize: 7.5,
           color: colors['textMuted'],
           italics: true,
-          margin: [0, 0, 0, 8],
+          margin: [0, 0, 0, 5],
+          lineHeight: 1.3,
         });
       }
 
+      // Precio con símbolo decorativo
+      infoStack.push({
+        text: `$ ${product.price?.toLocaleString('es-CO') ?? '0'}`,
+        fontSize: 12,
+        bold: true,
+        color: colors['primary'],
+      });
+
+      return {
+        table: {
+          widths: [76, '*'],
+          body: [[imageCell, { stack: infoStack, margin: [0, 8, 8, 6] }]],
+        },
+        layout: {
+          fillColor: () => colors['bgGray'],
+          hLineWidth: (i: number, node: any) =>
+            i === 0 || i === node.table.body.length ? 1 : 0,
+          vLineWidth: (i: number, node: any) =>
+            i === 0 || i === node.table.widths.length ? 1 : 0,
+          hLineColor: () => colors['primary'],
+          vLineColor: () => colors['primary'],
+          paddingLeft: () => 0,
+          paddingRight: () => 0,
+          paddingTop: () => 0,
+          paddingBottom: () => 0,
+        },
+      };
+    };
+
+    // ── Grid de 2 columnas ───────────────────────────────────────────
+    const rows: any[] = [];
+    for (let i = 0; i < products.length; i += 2) {
+      const p1 = products[i];
+      const p2 = products[i + 1] ?? null;
       rows.push({
-        canvas: [
-          {
-            type: 'line' as const,
-            x1: 0,
-            y1: 0,
-            x2: 450,
-            y2: 0,
-            lineWidth: PDF_CONFIG.content.productLineWidth,
-            lineColor: colors['bgGray'],
-          },
+        columns: [
+          { width: '*', stack: [buildCard(p1)], margin: [0, 0, 4, 0] },
+          { width: '*', stack: [buildCard(p2)], margin: [4, 0, 0, 0] },
         ],
         margin: [0, 0, 0, 8],
       });
-    });
+    }
 
     return { stack: rows };
   }
@@ -561,27 +719,44 @@ export class MenuPdfService {
     return {
       categoryTitleDark: {
         fontSize: PDF_CONFIG.content.categoryTitleSize,
-        color: colors['text'],
-        characterSpacing: 2,
+        bold: true,
+        color: '#FFFFFF',
+        characterSpacing: 3,
+        alignment: 'center',
       },
       subcategoryTitle: {
-        fontSize: 12,
+        fontSize: 11,
+        bold: true,
         color: colors['primary'],
-        italics: true,
       },
       productName: {
-        fontSize: 11,
+        fontSize: 10,
+        bold: true,
         color: colors['text'],
       },
       productDescription: {
         fontSize: PDF_CONFIG.content.descriptionSize,
         color: colors['textMuted'],
         italics: true,
+        lineHeight: 1.3,
       },
       price: {
-        fontSize: 11,
+        fontSize: 12,
+        bold: true,
         color: colors['primary'],
-        alignment: 'right',
+      },
+      coverTitle: {
+        fontSize: PDF_CONFIG.portada.titleSize,
+        bold: true,
+        characterSpacing: 4,
+        color: colors['text'],
+        alignment: 'center',
+      },
+      coverSubtitle: {
+        fontSize: PDF_CONFIG.portada.subtitleSize,
+        italics: true,
+        color: colors['primary'],
+        alignment: 'center',
       },
     };
   }
