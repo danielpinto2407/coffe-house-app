@@ -43,7 +43,7 @@ header button:active {
 /* ✅ Iconos con transiciones suaves */
 header .material-icons {
   transition: color 0.2s ease, transform 0.2s ease;
-  color: var(--color-secondary);
+  color: white;
 }
 
 header button:hover .material-icons {
@@ -62,7 +62,7 @@ header img:hover {
 
 /* ✅ Títulos del header */
 header h1 {
-  color: var(--color-secondary);
+  color: white;
   line-height: 1.1;
 }
 
