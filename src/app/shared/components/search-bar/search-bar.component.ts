@@ -11,7 +11,6 @@ import { FormsModule } from '@angular/forms';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SearchBarComponent {
-
   protected readonly term = signal<string>('');
   @Output() search = new EventEmitter<string>();
 

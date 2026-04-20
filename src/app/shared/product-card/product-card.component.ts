@@ -27,7 +27,7 @@ export class ProductCardComponent {
     const prod = this.product();
     if (!prod?.image) {
       return {
-        src: 'assets/img/placeholder.png',
+        src: 'assets/img/logo.png',
         srcset: '',
         sizes: '',
       };

@@ -1,6 +1,11 @@
-<!-- ✅ BUSCADOR SIEMPRE VISIBLE -->
-<app-search-bar (search)="onSearch($event)"></app-search-bar>
+<!-- ✅ CONTENEDOR PARA BUSCADOR PEGADO -->
+<div class="fixed-search-container">
+  <app-search-bar (search)="onSearch($event)"></app-search-bar>
+</div>
 
+<!-- ✅ CONTENEDOR PRINCIPAL CON PADDING PARA BUSCADOR FIJO -->
+<div class="menu-with-fixed-search">
+  
 <!-- ✅ Estado de carga mejorado -->
 @if (isLoading()) {
   <div class="p-4 flex justify-center items-center min-h-screen">
@@ -47,11 +52,11 @@
     <!-- 📋 MODO NORMAL: Mostrar categorías y contenido seleccionado -->
     @if (!isSearching()) {
       <div>
-        <!-- ✅ CARRUSEL DE CATEGORÍAS (TABS) -->
+        <!-- ✅ CARRUSEL DE CATEGORÍAS (TABS) CON SCROLL HORIZONTAL -->
         @if (categories().length > 0) {
-          <div class="mb-6">
+          <div class="mb-6 sticky-categories">
             <!-- Scroll horizontal de categorías -->
-            <div class="flex overflow-x-auto gap-2 pb-2 -mx-4 px-4 scrollbar-hide">
+            <div class="category-tabs scrollbar-hide">
               @for (category of categories(); track category.id) {
                 <button
                   (click)="onSelectCategory(category.id)"
@@ -78,7 +83,7 @@
         <!-- ✅ CONTENIDO DE LA CATEGORÍA SELECCIONADA -->
         @if (selectedCategoryData()) {
           <div>
-            <h2 class="text-2xl font-bold text-text mb-3">
+            <h2 class="text-2xl font-bold text-primary mb-3">
               {{ selectedCategoryData()?.name }}
             </h2>
             <h3 class="font-bold text-text-secondary mb-6">
@@ -115,7 +120,7 @@
             @for (sub of selectedCategoryData()?.subcategories || []; track sub.id) {
               @if (sub.products.length > 0) {
                 <div class="mb-6">
-                  <h3 class="text-xl font-semibold text-text mb-3">
+                  <h3 class="text-xl font-semibold text-primary mb-3">
                     {{ sub.name }}
                   </h3>
 
@@ -144,9 +149,10 @@
         }
       </div>
     }
-
   </div>
 }
+
+</div>
 
 <!-- ✅ CSS para ocultar scrollbar visual pero mantener funcionalidad -->
 <style>

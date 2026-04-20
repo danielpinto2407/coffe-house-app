@@ -2,22 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Variables CSS por defecto - Tema Clásico (Optimizado para WCAG AA/AAA) */
+/* Variables CSS por defecto - Tema Clásico (sincronizado con theme.config.ts) */
 :root {
-  --color-primary: #8B5A2B;
-  --color-secondary: #D4A574;
-  --color-tertiary: #F9F3EB;
+  --color-primary: #5C2E10;
+  --color-secondary: #F5E6CC;
+  --color-tertiary: #F5E6CC;
   --color-accent: #B8860B;
-  --color-text: #2C1810;
-  --color-text-secondary: #6B5444;
-  --color-background: #FEFDFB;
-  --color-background-light: #F3EDE3;
+  --color-text: #2C1408;
+  --color-text-secondary: #7A4B2A;
+  --color-background: #EDD9A333;
+  --color-background-light: #F5E6CC;
   --color-surface: #FFFFFF;
-  --color-border: #D4A574;
-  --color-success: #2E7D32;
-  --color-warning: #F57C00;
-  --color-error: #C62828;
-  --color-hover: #E8DCC4;
+  --color-border: #C8A96E;
+  --color-success: #3A6B35;
+  --color-warning: #C8780A;
+  --color-error: #A83228;
+  --color-hover: #EDD9A3;
 }
 
 /* Contraste para modo oscuro: asegúrate que las cards y textos usen bien las variables */

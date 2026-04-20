@@ -13,10 +13,9 @@
 <!-- OVERLAY PANEL -->
 <div 
   *ngIf="cart.open$ | async"
-  [style.backgroundColor]="'var(--color-surface)'"
-  [style.borderLeftColor]="'var(--color-border)'"
   class="fixed right-0 top-0 h-full w-80 shadow-2xl z-50 p-5
-         flex flex-col transition-transform transform border-l"
+         flex flex-col transition-transform transform border-l bg-primary text-white"
+  [style.borderLeftColor]="'var(--color-secondary)'"
   [class.translate-x-full]="!(cart.open$ | async)"
   [class.translate-x-0]="cart.open$ | async"
   role="dialog"
@@ -25,10 +24,10 @@
 
   <!-- Header -->
   <div class="flex justify-between items-center mb-5">
-    <h2 class="text-xl font-bold text-text">Tu carrito</h2>
+    <h2 class="text-xl font-bold text-white">Tu carrito</h2>
     <button 
       type="button"
-      class="text-text-secondary hover:text-text transition"
+      class="text-white/70 hover:text-white transition"
       (click)="cart.close()"
       aria-label="Cerrar carrito">
       ✕
@@ -49,8 +48,8 @@
 
       <!-- Info -->
       <div class="flex-1">
-        <p class="font-semibold text-text">{{ item.product.name }}</p>
-        <p class="text-sm text-text-secondary">$ {{ item.product.price | number }}</p>
+        <p class="font-semibold text-white">{{ item.product.name }}</p>
+        <p class="text-sm text-white/70">$ {{ item.product.price | number }}</p>
 
         <!-- Controles -->
         <div class="flex items-center gap-2 mt-2">
@@ -65,7 +64,7 @@
             -
           </button>
 
-          <span class="font-semibold text-text" [attr.aria-label]="'Cantidad: ' + item.qty">{{ item.qty }}</span>
+          <span class="font-semibold text-white" [attr.aria-label]="'Cantidad: ' + item.qty">{{ item.qty }}</span>
 
           <button 
             type="button"
@@ -83,7 +82,7 @@
       <!-- Eliminar -->
       <button 
         type="button"
-        class="text-error hover:opacity-80 font-bold transition"
+        class="text-white/60 hover:text-white font-bold transition"
         (click)="onRemove(item.product.id)"
         [attr.aria-label]="'Eliminar ' + item.product.name + ' del carrito'">
         ✕
@@ -94,17 +93,17 @@
   </div>
 
   <!-- Footer -->
-  <div [style.borderTopColor]="'var(--color-border)'" class="border-t pt-4 mt-4">
+  <div [style.borderTopColor]="'rgba(255,255,255,0.2)'" class="border-t pt-4 mt-4">
 
-    <div class="flex justify-between font-semibold mb-3 text-text">
+    <div class="flex justify-between font-semibold mb-3 text-white">
       <span>Subtotal</span>
       <span>$ {{ (cart.total$ | async) || 0 | number }}</span>
     </div>
 
     <button 
       type="button"
-      class="w-full bg-primary text-white py-3 rounded-xl font-semibold 
-                   hover:bg-primary/90 transition"
+      class="w-full bg-secondary text-text py-3 rounded-xl font-semibold 
+                   hover:bg-secondary/90 transition"
       (click)="onCheckout()"
       aria-label="Proceder al pago">
       Proceder al pago

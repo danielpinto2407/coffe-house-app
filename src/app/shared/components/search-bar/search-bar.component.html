@@ -1,8 +1,22 @@
-<input
-  type="text"
-  [(ngModel)]="term"
-  (input)="onInput()"
-  placeholder="Buscar productos..."
-  class="w-full p-3 mb-5 rounded-xl border border-gray-300 shadow-sm
-         focus:outline-none focus:ring-2 focus:ring-primary"
-/>
+<!-- 📱 VERSIÓN MÓVIL: Buscador compacto siempre visible -->
+<div class="md:hidden w-full px-3 py-1">
+  <input
+    type="text"
+    [(ngModel)]="term"
+    (input)="onInput()"
+    placeholder="Buscar..."
+    class="w-full px-3 py-1.5 rounded-lg border border-border bg-surface text-text-primary placeholder-text-secondary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition text-xs"
+  />
+</div>
+
+<!-- 💻 VERSIÓN DESKTOP: Barra siempre visible -->
+<div class="hidden md:block px-6 py-3">
+  <input
+    type="text"
+    [(ngModel)]="term"
+    (input)="onInput()"
+    placeholder="Buscar productos..."
+    class="w-full sm:max-w-xs px-4 py-2 rounded-xl border border-border bg-surface shadow-sm
+           focus:outline-none focus:ring-2 focus:ring-primary text-text-primary placeholder-text-secondary transition text-sm"
+  />
+</div>

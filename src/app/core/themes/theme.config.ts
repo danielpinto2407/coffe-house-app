@@ -31,7 +31,7 @@ export const THEMES: Record<string, ThemeConfig> = {
       // Marrón chocolatero profundo del logo
       primary: '#5C2E10',
       // Dorado antiguo del borde y detalles
-      secondary: '#D4A96A',
+      secondary: '#F5E6CC',
       // Crema envejecida del medallón
       tertiary: '#F5E6CC',
       // Dorado oscuro de los detalles metálicos

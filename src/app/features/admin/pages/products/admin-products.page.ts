@@ -625,9 +625,10 @@ export class AdminProductsPage implements OnInit {
       this.isUploadingImage.set(true);
       this.uploadImageProgress.set(0);
 
-      // Pasar editingId si estamos editando un producto (para que pise la imagen anterior)
-      const productId = this.editingId() ?? undefined;
-      const url = await this.imageUploadService.uploadProductImage(file, productId);
+      // ✅ Usar nombre del producto para generar nombre de archivo consistente
+      // Al actualizar, sobrescribe automáticamente
+      const productName = this.form.get('name')?.value || 'producto';
+      const url = await this.imageUploadService.uploadProductImage(file, productName);
 
       // Llenar el campo imagen automáticamente
       this.form.patchValue({ image: url });

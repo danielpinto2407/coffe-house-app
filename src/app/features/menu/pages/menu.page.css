@@ -1,0 +1,70 @@
+/* ✅ BUSCADOR NORMAL (no flotante), solo el header es flotante */
+
+/* En MÓVIL: Buscador normal, con padding para el header flotante */
+@media (max-width: 640px) {
+  .fixed-search-container {
+    position: static;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .menu-with-fixed-search {
+    padding-top: 56px; /* Solo para el header flotante (56px) */
+  }
+}
+
+/* En DESKTOP: comportamiento normal */
+@media (min-width: 641px) {
+  .fixed-search-container {
+    position: static;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .menu-with-fixed-search {
+    padding-top: 0;
+  }
+}
+
+/* ✅ Categorías con scroll horizontal suave */
+.sticky-categories {
+  display: block;
+  width: 100%;
+  margin-bottom: 1.5rem;
+  margin-top: 0;
+}
+
+/* ✅ Optimización para ocultar scrollbar visual pero mantener funcionalidad */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ✅ Tabs de categorías */
+.category-tabs {
+  display: flex;
+  overflow-x: auto;
+  gap: 0.5rem;
+  padding-bottom: 0.5rem;
+  margin: 0 -1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+/* ✅ Botones de categoría con transición */
+.category-tabs button {
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.category-tabs button:hover {
+  transform: translateY(-2px);
+}
+
+.category-tabs button.active {
+  border-bottom-width: 2px;
+}
