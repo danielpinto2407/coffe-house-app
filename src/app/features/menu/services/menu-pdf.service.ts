@@ -213,6 +213,7 @@ export class MenuPdfService {
   /**
    * Convierte imágenes de todos los productos a base64 y retorna un diccionario
    * con clave 'product_<id>' → base64 dataURL para usarse en pdfmake `images`.
+   * Si un producto no tiene imagen, usa el logo por defecto.
    */
   private async convertMenuImagesToBase64(menuData: MenuStructure[]): Promise<Record<string, string>> {
     const imagesDict: Record<string, string> = {};
@@ -225,11 +226,14 @@ export class MenuPdfService {
       }
     }
 
+    // Obtener el logo una sola vez para reutilizarlo en productos sin imagen
+    const logoBase64 = await this.resolveImageToBase64('assets/img/logo.png', 80);
+
     await Promise.all(
       allProducts.map(async (product) => {
-        if (!product.image) return;
+        const imageUrl = product.image && product.image.trim() ? product.image : 'assets/img/logo.png';
         // Tamaño fijo 80x80 con cover crop para uniformidad en el PDF
-        const base64 = await this.resolveImageToBase64(product.image, 80);
+        const base64 = await this.resolveImageToBase64(imageUrl, 80);
         if (base64) {
           imagesDict[`product_${product.id}`] = base64;
         }

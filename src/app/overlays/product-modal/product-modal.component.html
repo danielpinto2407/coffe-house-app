@@ -41,7 +41,7 @@
 
       <!-- Imagen del producto -->
       <img 
-        [src]="product.image" 
+        [src]="product.image ? product.image : 'assets/img/logo.png'" 
         [alt]="product.name"
         loading="lazy"
         class="product-image w-full rounded-xl mb-4 shadow-md"
