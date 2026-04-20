@@ -1,3 +1,24 @@
+/* ✅ Header fijo en mobile */
+@media (max-width: 640px) {
+  header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 40; /* Por encima del buscador */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* En desktop: header normal */
+@media (min-width: 641px) {
+  header {
+    position: static;
+    box-shadow: none;
+  }
+}
+
 header {
   transition: background-color 0.3s ease;
 }

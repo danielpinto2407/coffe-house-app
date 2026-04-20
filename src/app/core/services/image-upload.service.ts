@@ -35,19 +35,19 @@ export class ImageUploadService {
    * Flujo:
    * 1. Validar almacenamiento disponible
    * 2. Comprimir imagen
-   * 3. Subir a Supabase
+   * 3. Subir a Supabase con nombre amigable
    * 4. Retornar URL pública
    * 
    * @param file - Archivo del usuario
-   * @param productId - ID del producto (opcional). Si existe, la imagen usará nombre fijo: product-{id}.jpg y se pisará al actualizar
+   * @param productName - Nombre del producto. Se usa para generar nombre único (espacios → guiones)
    * @returns Promise con URL pública de la imagen
    * @throws Error si algo falla
    */
-  async uploadProductImage(file: File, productId?: number): Promise<string> {
-    // ✅ Si hay productId, usar nombre fijo para que se pise al actualizar
-    // Si no, generar nombre único (para productos nuevos)
-    const fileName = productId 
-      ? `product-${productId}${this.getFileExtension(file.name)}`
+  async uploadProductImage(file: File, productName?: string): Promise<string> {
+    // ✅ Generar nombre: si hay nombre, usar formato "nombre-del-producto.webp"
+    // Si no, generar nombre único simple
+    const fileName = productName 
+      ? `${productName.toLowerCase().trim().replace(/\s+/g, '-')}.webp`
       : this.imageOpt.generateUniqueFileName(file.name, 'product');
     
     this.uploading.set({
@@ -140,8 +140,8 @@ export class ImageUploadService {
       .from(this.BUCKET_NAME)
       .upload(remotePath, blob, {
         contentType: 'image/webp', // Siempre optimizamos a WebP
-        upsert: false, // No sobrescribir si existe
-        cacheControl: '31536000', // 1 año (revisión por timestamp en URL)
+        upsert: true, // ✅ Sobrescribir si existe (para actualizaciones)
+        cacheControl: '31536000', // 1 año
       });
 
     if (error) {
@@ -164,14 +164,6 @@ export class ImageUploadService {
   }
 
   /**
-   * ✅ Obtiene la extensión de un archivo de manera segura
-   */
-  private getFileExtension(fileName: string): string {
-    const match = fileName.match(/\.[^.]*$/);
-    return match ? match[0] : '.jpg';
-  }
-
-  /**
    * ✅ Obtiene URL optimizada con srcset para responsive
    */
   getOptimizedUrl(imagePath: string): string {
@@ -184,3 +176,4 @@ export class ImageUploadService {
     return `${data.publicUrl}?t=${Date.now()}`;
   }
 }
+

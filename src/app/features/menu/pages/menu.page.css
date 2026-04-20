@@ -1,20 +1,15 @@
-/* ✅ SOLUCIÓN DEFINITIVA: Buscador fijo en móvil */
+/* ✅ BUSCADOR NORMAL (no flotante), solo el header es flotante */
 
-/* En MÓVIL: Buscador pegado al top */
+/* En MÓVIL: Buscador normal, con padding para el header flotante */
 @media (max-width: 640px) {
   .fixed-search-container {
-    position: fixed;
-    top: 56px; /* Debajo del header (56px) */
-    left: 0;
-    right: 0;
-    width: 100%;
-    z-index: 30;
-    background: var(--color-background);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    position: static;
+    background: transparent;
+    box-shadow: none;
   }
 
   .menu-with-fixed-search {
-    padding-top: 68px; /* Espacio para el buscador fijo */
+    padding-top: 56px; /* Solo para el header flotante (56px) */
   }
 }
 

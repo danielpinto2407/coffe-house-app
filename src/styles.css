@@ -110,33 +110,3 @@ input:focus, textarea:focus, select:focus {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-primary);
 }
-/* ✅ SOLUCIÓN GLOBAL: Buscador pegado en móvil */
-@media (max-width: 640px) {
-  /* El buscador se pega al top en móvil */
-  app-search-bar {
-    position: fixed !important;
-    top: 56px !important; /* Debajo del header */
-    left: 0 !important;
-    right: 0 !important;
-    width: 100% !important;
-    z-index: 30 !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
-  }
-
-  /* Agregar padding al contenido para dejar espacio para el buscador fixed */
-  router-outlet ~ * {
-    margin-top: 70px;
-  }
-
-  /* El contenido del menú tiene padding superior extra */
-  [class*="menu"] {
-    padding-top: 70px;
-  }
-}
-
-/* ✅ Desktop: comportamiento normal */
-@media (min-width: 641px) {
-  app-search-bar {
-    position: static !important;
-  }
-}
