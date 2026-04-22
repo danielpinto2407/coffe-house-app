@@ -47,7 +47,7 @@ export class ImageUploadService {
     // ✅ Generar nombre: si hay nombre, usar formato "nombre-del-producto.webp"
     // Si no, generar nombre único simple
     const fileName = productName 
-      ? `${productName.toLowerCase().trim().replace(/\s+/g, '-')}.webp`
+      ? this.sanitizeFileName(productName)
       : this.imageOpt.generateUniqueFileName(file.name, 'product');
     
     this.uploading.set({
@@ -174,6 +174,32 @@ export class ImageUploadService {
 
     // Agregar timestamp como cache buster
     return `${data.publicUrl}?t=${Date.now()}`;
+  }
+
+  /**
+   * ✅ Sanitiza nombre de archivo para Supabase
+   * Remueve acentos, caracteres especiales y genera nombre válido con .webp
+   * @param productName - Nombre a sanitizar
+   * @returns Nombre sanitizado con extensión .webp
+   */
+  private sanitizeFileName(productName: string): string {
+    return (
+      productName
+        .toLowerCase()
+        .trim()
+        // ✅ Normalizar y remover acentos (ñ → n, á → a, etc.)
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        // ✅ Reemplazar espacios y caracteres especiales con guiones
+        .replace(/[\s_/\\:*?"<>|]+/g, '-')
+        // ✅ Remover caracteres inválidos, mantener solo alfanuméricos, guiones y puntos
+        .replace(/[^a-z0-9.-]/g, '')
+        // ✅ Remover guiones múltiples consecutivos
+        .replace(/-+/g, '-')
+        // ✅ Remover guiones al inicio o final
+        .replace(/^-+|-+$/g, '') +
+      '.webp'
+    );
   }
 }
 
