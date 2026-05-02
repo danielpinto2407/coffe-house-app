@@ -1,16 +1,6 @@
 import { Injectable } from '@angular/core';
 import imageCompression from 'browser-image-compression';
 
-/**
- * ✅ Interfaz para imagen optimizada
- */
-export interface OptimizedImage {
-  src: string;
-  srcset: string;
-  sizes: string;
-  isOptimized: boolean;
-}
-
 export interface ImageCompressionOptions {
   maxSizeMB?: number;
   maxWidthOrHeight?: number;
@@ -57,32 +47,6 @@ export class ImageOptimizationService {
     );
 
     return compressedFile;
-  }
-
-  /**
-   * ✅ Devuelve URL optimizada para Supabase con lazy loading
-   */
-  getOptimizedImageUrl(supabaseUrl: string, bucket: string, fileName: string): OptimizedImage {
-    const baseUrl = `${supabaseUrl}/storage/v1/object/public/${bucket}/${fileName}`;
-    
-    // Cachebuster: evita caché viejo si reuploadeamos
-    const timestamp = `?t=${Math.floor(Date.now() / 1000)}`;
-
-    return {
-      src: `${baseUrl}${timestamp}`,
-      srcset: `
-        ${baseUrl}?w=200&t=${Date.now()} 200w,
-        ${baseUrl}?w=400&t=${Date.now()} 400w,
-        ${baseUrl}?w=800&t=${Date.now()} 800w,
-        ${baseUrl}?w=1200&t=${Date.now()} 1200w
-      `,
-      sizes: `
-        (max-width: 640px) 100vw,
-        (max-width: 1024px) 50vw,
-        33vw
-      `,
-      isOptimized: true,
-    };
   }
 
   /**

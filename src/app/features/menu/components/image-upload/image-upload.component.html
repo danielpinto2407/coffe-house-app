@@ -1,7 +1,7 @@
 <div class="p-6 space-y-6">
   <!-- Cabecera -->
   <div>
-    <h2 class="text-2xl font-bold text-text-primary mb-2">Gestor de Imágenes de Productos</h2>
+    <h2 class="text-2xl font-bold text-text mb-2">Gestor de Imágenes de Productos</h2>
     <p class="text-text-secondary text-sm">
       Sube y optimiza imágenes. Se comprimen automáticamente a máximo 500KB.
     </p>
@@ -28,7 +28,7 @@
     />
     
     <span class="material-icons text-5xl text-primary mb-3 block">cloud_upload</span>
-    <p class="text-text-primary font-semibold mb-1">
+    <p class="text-text font-semibold mb-1">
       {{ isDragging() ? '📥 Suelta los archivos aquí' : '📤 Arrastra imágenes o haz clic' }}
     </p>
     <p class="text-text-secondary text-sm">
@@ -39,7 +39,7 @@
   <!-- Vista previa de archivos -->
   @if (filePreviews().length > 0) {
     <div class="space-y-4">
-      <h3 class="font-semibold text-text-primary">
+      <h3 class="font-semibold text-text">
         Archivos preparados ({{ filePreviews().length }})
       </h3>
 
@@ -54,14 +54,14 @@
 
             <!-- Info -->
             <div class="p-3 space-y-2">
-              <p class="text-sm font-medium text-text-primary truncate">{{ preview.file.name }}</p>
+              <p class="text-sm font-medium text-text truncate">{{ preview.file.name }}</p>
               
               <!-- Tamaño -->
               <div class="text-xs text-text-secondary space-y-1">
                 <p>Original: {{ (preview.originalSize / 1024).toFixed(1) }} KB</p>
                 @if (preview.compressedSize) {
                   <p>Comprimido: {{ (preview.compressedSize / 1024).toFixed(1) }} KB</p>
-                  <p class="text-green-500 font-semibold">{{ preview.savings }}</p>
+                  <p class="text-success font-semibold">{{ preview.savings }}</p>
                 }
               </div>
 
@@ -70,7 +70,7 @@
                 <button
                   type="button"
                   (click)="removeFile(preview.file.name)"
-                  class="flex-1 px-2 py-1 text-xs bg-red-500/10 text-red-500 rounded hover:bg-red-500/20 transition font-medium">
+                  class="flex-1 px-2 py-1 text-xs bg-error/10 text-error rounded hover:bg-error/20 transition font-medium">
                   Eliminar
                 </button>
               </div>
@@ -93,7 +93,7 @@
           type="button"
           (click)="clearAll()"
           [disabled]="isUploading()"
-          class="px-4 py-2 rounded-lg border border-border text-text-primary hover:bg-surface transition font-semibold disabled:opacity-50">
+          class="px-4 py-2 rounded-lg border border-border text-text hover:bg-surface transition font-semibold disabled:opacity-50">
           Limpiar
         </button>
       </div>
@@ -104,7 +104,7 @@
   @if (uploadProgress()) {
     <div class="bg-background rounded-lg p-4 space-y-3">
       <div class="flex items-center justify-between">
-        <p class="font-semibold text-text-primary">{{ uploadProgress()!.fileName }}</p>
+        <p class="font-semibold text-text">{{ uploadProgress()!.fileName }}</p>
         <span class="text-sm text-text-secondary">{{ uploadProgress()!.progress }}%</span>
       </div>
       <div class="w-full bg-surface rounded-full h-2 overflow-hidden">
@@ -118,7 +118,7 @@
 
   <!-- Productos sin imagen -->
   <div class="border border-border rounded-lg p-4 bg-surface">
-    <h3 class="font-semibold text-text-primary mb-3">
+    <h3 class="font-semibold text-text mb-3">
       Productos sin imagen ({{ productsWithoutImage().length }})
     </h3>
     
@@ -127,10 +127,10 @@
         @for (product of productsWithoutImage(); track product.id) {
           <div class="flex items-center justify-between bg-background p-3 rounded">
             <div>
-              <p class="font-medium text-text-primary">{{ product.name }}</p>
+              <p class="font-medium text-text">{{ product.name }}</p>
               <p class="text-xs text-text-secondary">${{ product.price }}</p>
             </div>
-            <span class="material-icons text-yellow-500 text-lg">image_not_supported</span>
+            <span class="material-icons text-warning text-lg">image_not_supported</span>
           </div>
         }
       </div>

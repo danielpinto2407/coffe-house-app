@@ -1,7 +1,5 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { SupabaseService } from './supabase.service';
-import { Observable, from } from 'rxjs';
-import { map, startWith } from 'rxjs/operators';
 
 /**
  * ✅ Interfaz para estadísticas de almacenamiento
@@ -165,37 +163,6 @@ export class StorageMonitoringService {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
 
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-  }
-
-  /**
-   * ✅ Observable que actualiza stats automáticamente
-   * Útil para dashboards que necesitan actualización en tiempo real
-   */
-  getStorageStats$(): Observable<StorageStats | null> {
-    return from(this.getStorageStats()).pipe(
-      map(stats => {
-        this.storageStats.set(stats);
-        return stats;
-      }),
-      startWith(this.storageStats())
-    );
-  }
-
-  /**
-   * ✅ Calcula cuándo se llenará el almacenamiento
-   * basado en la tasa actual de crecimiento
-   */
-  getEstimatedFullDate(): Date | null {
-    const stats = this.storageStats();
-    const lastUp = this.lastUpdated();
-
-    if (!stats || !lastUp) {
-      return null; // Necesitamos al menos 2 mediciones
-    }
-
-    // Por ahora, retornamos null (requeriría 2 mediciones)
-    // En producción, se almacenaría hist histórico
-    return null;
   }
 
   /**

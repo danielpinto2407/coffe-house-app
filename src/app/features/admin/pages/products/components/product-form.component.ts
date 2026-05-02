@@ -36,7 +36,7 @@ import { SubcategoryService } from '../../../menu/services/subcategory.service';
           <!-- Categoría -->
           <div>
             <label class="block text-sm font-medium text-text mb-2">
-              Categoría <span class="text-red-500">*</span>
+              Categoría <span class="text-error">*</span>
             </label>
             <select
               formControlName="categoryId"
@@ -48,7 +48,7 @@ import { SubcategoryService } from '../../../menu/services/subcategory.service';
                 {{ cat.name }}
               </option>
             </select>
-            <span *ngIf="isFieldInvalid('categoryId')" class="text-red-500 text-xs mt-1">
+            <span *ngIf="isFieldInvalid('categoryId')" class="text-error text-xs mt-1">
               Categoría es requerida
             </span>
           </div>
@@ -75,7 +75,7 @@ import { SubcategoryService } from '../../../menu/services/subcategory.service';
           <!-- Nombre -->
           <div>
             <label class="block text-sm font-medium text-text mb-2">
-              Nombre del Producto <span class="text-red-500">*</span>
+              Nombre del Producto <span class="text-error">*</span>
             </label>
             <input
               type="text"
@@ -84,7 +84,7 @@ import { SubcategoryService } from '../../../menu/services/subcategory.service';
               maxlength="100"
               class="w-full px-4 py-2 rounded-lg border border-surface bg-background text-text placeholder-text-secondary
                      focus:border-primary focus:outline-none transition" />
-            <span *ngIf="isFieldInvalid('name')" class="text-red-500 text-xs mt-1">
+            <span *ngIf="isFieldInvalid('name')" class="text-error text-xs mt-1">
               Nombre es requerido (máx. 100 caracteres)
             </span>
           </div>
@@ -92,7 +92,7 @@ import { SubcategoryService } from '../../../menu/services/subcategory.service';
           <!-- Precio -->
           <div>
             <label class="block text-sm font-medium text-text mb-2">
-              Precio <span class="text-red-500">*</span>
+              Precio <span class="text-error">*</span>
             </label>
             <input
               type="number"
@@ -102,7 +102,7 @@ import { SubcategoryService } from '../../../menu/services/subcategory.service';
               step="100"
               class="w-full px-4 py-2 rounded-lg border border-surface bg-background text-text
                      focus:border-primary focus:outline-none transition" />
-            <span *ngIf="isFieldInvalid('price')" class="text-red-500 text-xs mt-1">
+            <span *ngIf="isFieldInvalid('price')" class="text-error text-xs mt-1">
               Precio es requerido y debe ser positivo
             </span>
           </div>
@@ -135,7 +135,7 @@ import { SubcategoryService } from '../../../menu/services/subcategory.service';
               placeholder="https://..."
               class="w-full px-4 py-2 rounded-lg border border-surface bg-background text-text placeholder-text-secondary
                      focus:border-primary focus:outline-none transition" />
-            <span *ngIf="isFieldInvalid('image')" class="text-red-500 text-xs mt-1">
+            <span *ngIf="isFieldInvalid('image')" class="text-error text-xs mt-1">
               URL de imagen inválida
             </span>
             <!-- Preview -->
@@ -162,7 +162,7 @@ import { SubcategoryService } from '../../../menu/services/subcategory.service';
           </div>
 
           <!-- Errores globales -->
-          <div *ngIf="errorMessage()" class="p-3 rounded-lg bg-red-500/10 border border-red-500 text-red-500 text-sm">
+          <div *ngIf="errorMessage()" class="p-3 rounded-lg bg-error/10 border border-error text-error text-sm">
             {{ errorMessage() }}
           </div>
 

@@ -26,7 +26,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
 
       <!-- Error de carga global -->
       @if (loadError()) {
-        <div class="bg-red-500/10 border border-red-500 text-red-500 px-4 py-3 rounded-lg mb-6 flex items-start gap-3">
+        <div class="bg-error/10 border border-error text-error px-4 py-3 rounded-lg mb-6 flex items-start gap-3">
           <span class="material-icons mt-0.5">error</span>
           <div>
             <p class="font-semibold">Error cargando datos:</p>
@@ -43,7 +43,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
             <span class="material-icons text-text-secondary">arrow_back</span>
           </a>
           <div>
-            <h1 class="text-2xl font-bold text-text-primary">Gestión de Subcategorías</h1>
+            <h1 class="text-2xl font-bold text-text">Gestión de Subcategorías</h1>
             <p class="text-text-secondary text-sm">
               {{ isLoading() ? 'Cargando...' : filteredSubcategories().length + ' subcategorías en total' }}
             </p>
@@ -92,7 +92,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
           placeholder="Buscar subcategoría..."
           [value]="searchQuery()"
           (input)="searchQuery.set($any($event.target).value)"
-          class="w-full pl-10 pr-4 py-2 bg-surface border border-border rounded-lg text-text-primary placeholder-text-secondary focus:outline-none focus:border-primary transition"
+          class="w-full pl-10 pr-4 py-2 bg-surface border border-border rounded-lg text-text placeholder-text-secondary focus:outline-none focus:border-primary transition"
         />
       </div>
 
@@ -124,7 +124,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
                 <tr class="border-b border-border last:border-0 hover:bg-background transition cursor-pointer"
                     (click)="openEditForm(subcategory)">
                   <td class="px-4 py-3">
-                    <span class="font-medium text-text-primary">{{ subcategory.name }}</span>
+                    <span class="font-medium text-text">{{ subcategory.name }}</span>
                   </td>
                   <td class="px-4 py-3 text-text-secondary hidden md:table-cell text-xs">
                     <span class="bg-primary/10 text-primary px-2 py-1 rounded">{{ getCategoryName(subcategory.categoryId) }}</span>
@@ -143,7 +143,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
                         [disabled]="isLoading() || hasProducts(subcategory.id)"
                         [title]="hasProducts(subcategory.id) ? 'No puedes eliminar una subcategoría que tiene productos' : 'Eliminar'"
                         class="p-2 rounded hover:bg-border transition disabled:opacity-50 disabled:cursor-not-allowed">
-                        <span class="material-icons text-sm text-red-500">close</span>
+                        <span class="material-icons text-sm text-error">close</span>
                       </button>
                     </div>
                   </td>
@@ -167,13 +167,13 @@ import { NotificationService } from '../../../../core/services/notification.serv
             
             <!-- Header -->
             <div class="flex items-center justify-between p-6 border-b border-surface">
-              <h2 class="text-xl font-bold text-text-primary">
+              <h2 class="text-xl font-bold text-text">
                 {{ editingId() ? 'Editar Subcategoría' : 'Nueva Subcategoría' }}
               </h2>
               <button
                 type="button"
                 (click)="closeForm()"
-                class="text-text-secondary hover:text-text-primary transition">
+                class="text-text-secondary hover:text-text transition">
                 <span class="material-icons">close</span>
               </button>
             </div>
@@ -183,42 +183,42 @@ import { NotificationService } from '../../../../core/services/notification.serv
               
               <!-- Categoría padre -->
               <div>
-                <label class="block text-sm font-medium text-text-primary mb-2">
-                  Categoría <span class="text-red-500">*</span>
+                <label class="block text-sm font-medium text-text mb-2">
+                  Categoría <span class="text-error">*</span>
                 </label>
                 <select
                   formControlName="categoryId"
-                  class="w-full px-4 py-2 rounded-lg border border-border bg-surface text-text-primary focus:border-primary focus:outline-none transition">
+                  class="w-full px-4 py-2 rounded-lg border border-border bg-surface text-text focus:border-primary focus:outline-none transition">
                   <option value="">Selecciona una categoría...</option>
                   @for (category of categories(); track category.id) {
                     <option [value]="category.id">{{ category.name }}</option>
                   }
                 </select>
                 @if (form.get('categoryId')?.invalid && form.get('categoryId')?.touched) {
-                  <p class="text-red-500 text-xs mt-1">La categoría es requerida</p>
+                  <p class="text-error text-xs mt-1">La categoría es requerida</p>
                 }
               </div>
 
               <!-- Nombre -->
               <div>
-                <label class="block text-sm font-medium text-text-primary mb-2">
-                  Nombre <span class="text-red-500">*</span>
+                <label class="block text-sm font-medium text-text mb-2">
+                  Nombre <span class="text-error">*</span>
                 </label>
                 <input
                   type="text"
                   formControlName="name"
                   placeholder="Ej: Bebidas Calientes"
                   maxlength="100"
-                  class="w-full px-4 py-2 rounded-lg border border-border bg-surface text-text-primary placeholder-text-secondary focus:border-primary focus:outline-none transition"
+                  class="w-full px-4 py-2 rounded-lg border border-border bg-surface text-text placeholder-text-secondary focus:border-primary focus:outline-none transition"
                 />
                 @if (form.get('name')?.invalid && form.get('name')?.touched) {
-                  <p class="text-red-500 text-xs mt-1">El nombre es requerido (máx. 100 caracteres)</p>
+                  <p class="text-error text-xs mt-1">El nombre es requerido (máx. 100 caracteres)</p>
                 }
               </div>
 
               <!-- Descripción -->
               <div>
-                <label class="block text-sm font-medium text-text-primary mb-2">
+                <label class="block text-sm font-medium text-text mb-2">
                   Descripción
                 </label>
                 <textarea
@@ -226,30 +226,30 @@ import { NotificationService } from '../../../../core/services/notification.serv
                   placeholder="Descripción opcional..."
                   maxlength="500"
                   rows="3"
-                  class="w-full px-4 py-2 rounded-lg border border-border bg-surface text-text-primary placeholder-text-secondary focus:border-primary focus:outline-none transition resize-vertical"
+                  class="w-full px-4 py-2 rounded-lg border border-border bg-surface text-text placeholder-text-secondary focus:border-primary focus:outline-none transition resize-vertical"
                 ></textarea>
                 <p class="text-xs text-text-secondary mt-1">{{ form.get('description')?.value?.length || 0 }}/500</p>
               </div>
 
               <!-- Orden -->
               <div>
-                <label class="block text-sm font-medium text-text-primary mb-2">
+                <label class="block text-sm font-medium text-text mb-2">
                   Orden de visualización
                 </label>
                 <input
                   type="number"
                   formControlName="order"
                   min="1"
-                  class="w-full px-4 py-2 rounded-lg border border-border bg-surface text-text-primary focus:border-primary focus:outline-none transition"
+                  class="w-full px-4 py-2 rounded-lg border border-border bg-surface text-text focus:border-primary focus:outline-none transition"
                 />
                 @if (form.get('order')?.invalid && form.get('order')?.touched) {
-                  <p class="text-red-500 text-xs mt-1">El orden debe ser un número positivo</p>
+                  <p class="text-error text-xs mt-1">El orden debe ser un número positivo</p>
                 }
               </div>
 
               <!-- Error del formulario -->
               @if (formError()) {
-                <div class="bg-red-500/10 border border-red-500 text-red-500 px-4 py-3 rounded-lg text-sm">
+                <div class="bg-error/10 border border-error text-error px-4 py-3 rounded-lg text-sm">
                   {{ formError() }}
                 </div>
               }
@@ -259,7 +259,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
                 <button
                   type="button"
                   (click)="closeForm()"
-                  class="px-4 py-2 rounded-lg border border-border text-text-primary hover:bg-surface transition font-semibold">
+                  class="px-4 py-2 rounded-lg border border-border text-text hover:bg-surface transition font-semibold">
                   Cancelar
                 </button>
                 <button

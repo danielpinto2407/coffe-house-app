@@ -23,7 +23,7 @@ import { QrModalComponent } from '../../../../overlays/qr-modal/qr-modal.compone
         >
           <div class="flex items-center gap-3 mb-2">
             <span class="material-icons text-primary text-2xl">category</span>
-            <h2 class="text-xl font-semibold text-text-primary">Categorías</h2>
+            <h2 class="text-xl font-semibold text-text">Categorías</h2>
           </div>
           <p class="text-text-secondary text-sm">Gestionar las categorías principales del menú.</p>
         </a>
@@ -33,7 +33,7 @@ import { QrModalComponent } from '../../../../overlays/qr-modal/qr-modal.compone
         >
           <div class="flex items-center gap-3 mb-2">
             <span class="material-icons text-primary text-2xl">subdirectory_arrow_right</span>
-            <h2 class="text-xl font-semibold text-text-primary">Subcategorías</h2>
+            <h2 class="text-xl font-semibold text-text">Subcategorías</h2>
           </div>
           <p class="text-text-secondary text-sm">Gestionar subcategorías dentro de categorías.</p>
         </a>
@@ -43,7 +43,7 @@ import { QrModalComponent } from '../../../../overlays/qr-modal/qr-modal.compone
         >
           <div class="flex items-center gap-3 mb-2">
             <span class="material-icons text-primary text-2xl">local_dining</span>
-            <h2 class="text-xl font-semibold text-text-primary">Productos</h2>
+            <h2 class="text-xl font-semibold text-text">Productos</h2>
           </div>
           <p class="text-text-secondary text-sm">Agregar, editar y eliminar productos del menú.</p>
         </a>
@@ -54,7 +54,7 @@ import { QrModalComponent } from '../../../../overlays/qr-modal/qr-modal.compone
         >
           <div class="flex items-center gap-3 mb-2">
             <span class="material-icons text-primary text-2xl">add_circle</span>
-            <h2 class="text-xl font-semibold text-text-primary">Adiciones</h2>
+            <h2 class="text-xl font-semibold text-text">Adiciones</h2>
           </div>
           <p class="text-text-secondary text-sm">Gestionar adiciones y personalizaciones de productos.</p>
         </a>
@@ -64,7 +64,7 @@ import { QrModalComponent } from '../../../../overlays/qr-modal/qr-modal.compone
              (click)="togglePdfActions()">
           <div class="flex items-center gap-3 mb-2">
             <span class="material-icons text-secondary text-2xl">description</span>
-            <h2 class="text-xl font-semibold text-text-primary">Menú PDF</h2>
+            <h2 class="text-xl font-semibold text-text">Menú PDF</h2>
           </div>
           <p class="text-text-secondary text-sm">Generar PDF del menú y crear código QR.</p>
           
@@ -99,7 +99,7 @@ import { QrModalComponent } from '../../../../overlays/qr-modal/qr-modal.compone
         >
           <div class="flex items-center gap-3 mb-2">
             <span class="material-icons text-primary text-2xl">restaurant_menu</span>
-            <h2 class="text-xl font-semibold text-text-primary">Ver Menú</h2>
+            <h2 class="text-xl font-semibold text-text">Ver Menú</h2>
           </div>
           <p class="text-text-secondary text-sm">Ir al menú público de la cafetería.</p>
         </a>

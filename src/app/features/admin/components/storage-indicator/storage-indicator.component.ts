@@ -15,7 +15,7 @@ import { interval } from 'rxjs';
       <!-- Encabezado -->
       <div class="flex items-center gap-3 mb-4">
         <span class="material-icons text-accent text-2xl">storage</span>
-        <h3 class="text-xl font-semibold text-text-primary">Almacenamiento</h3>
+        <h3 class="text-xl font-semibold text-text">Almacenamiento</h3>
         <button
           type="button"
           (click)="onRefresh()"
@@ -56,19 +56,19 @@ import { interval } from 'rxjs';
           <div class="grid grid-cols-2 gap-3 text-sm">
             <div class="p-3 bg-border rounded-lg">
               <p class="text-text-secondary mb-1">Usado</p>
-              <p class="font-semibold text-text-primary">{{ (stats()?.usedBytes ?? 0) | formatBytes }}</p>
+              <p class="font-semibold text-text">{{ (stats()?.usedBytes ?? 0) | formatBytes }}</p>
             </div>
             <div class="p-3 bg-border rounded-lg">
               <p class="text-text-secondary mb-1">Disponible</p>
-              <p class="font-semibold text-text-primary">{{ remainingBytes() | formatBytes }}</p>
+              <p class="font-semibold text-text">{{ remainingBytes() | formatBytes }}</p>
             </div>
             <div class="p-3 bg-border rounded-lg">
               <p class="text-text-secondary mb-1">Archivos</p>
-              <p class="font-semibold text-text-primary">{{ stats()?.filesCount || 0 }}</p>
+              <p class="font-semibold text-text">{{ stats()?.filesCount || 0 }}</p>
             </div>
             <div class="p-3 bg-border rounded-lg">
               <p class="text-text-secondary mb-1">Promedio/Archivo</p>
-              <p class="font-semibold text-text-primary">{{ (stats()?.averageFileSize ?? 0) | formatBytes }}</p>
+              <p class="font-semibold text-text">{{ (stats()?.averageFileSize ?? 0) | formatBytes }}</p>
             </div>
           </div>
 

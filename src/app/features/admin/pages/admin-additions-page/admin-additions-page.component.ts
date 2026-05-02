@@ -24,7 +24,7 @@ import { ConfirmationService } from '../../../../core/services/confirmation.serv
             <span class="material-icons text-text-secondary">arrow_back</span>
           </a>
           <div>
-            <h1 class="text-2xl font-bold text-text-primary">Gestión de Adiciones</h1>
+            <h1 class="text-2xl font-bold text-text">Gestión de Adiciones</h1>
             <p class="text-text-secondary text-sm">
               {{ additions().length }} adiciones en total
             </p>
@@ -48,7 +48,7 @@ import { ConfirmationService } from '../../../../core/services/confirmation.serv
           placeholder="Buscar adición..."
           [value]="searchQuery()"
           (input)="searchQuery.set($any($event.target).value)"
-          class="w-full pl-10 pr-4 py-2 bg-surface border border-border rounded-lg text-text-primary placeholder-text-secondary focus:outline-none focus:border-primary transition"
+          class="w-full pl-10 pr-4 py-2 bg-surface border border-border rounded-lg text-text placeholder-text-secondary focus:outline-none focus:border-primary transition"
         />
       </div>
 
@@ -67,7 +67,7 @@ import { ConfirmationService } from '../../../../core/services/confirmation.serv
             @for (addition of filteredAdditions(); track addition.id) {
               <tr class="border-b border-border last:border-0 hover:bg-background transition cursor-pointer"
                   (click)="openEditForm(addition)">
-                <td class="px-4 py-3 font-medium text-text-primary">{{ addition.name }}</td>
+                <td class="px-4 py-3 font-medium text-text">{{ addition.name }}</td>
                 <td class="px-4 py-3 text-right font-semibold text-primary">
                   {{ addition.price > 0 ? ('$' + (addition.price | number:'1.0-0')) : 'Incluido' }}
                 </td>
@@ -79,7 +79,7 @@ import { ConfirmationService } from '../../../../core/services/confirmation.serv
                     <button
                       type="button"
                       (click)="deleteAddition(addition.id); $event.stopPropagation()"
-                      class="p-1.5 rounded-lg hover:bg-red-500/10 text-red-500 transition"
+                      class="p-1.5 rounded-lg hover:bg-error/10 text-error transition"
                       aria-label="Eliminar">
                       <span class="material-icons text-lg">close</span>
                     </button>
@@ -104,11 +104,11 @@ import { ConfirmationService } from '../../../../core/services/confirmation.serv
           <div class="bg-surface rounded-lg shadow-lg max-w-md w-full max-h-screen overflow-y-auto">
 
             <div class="flex items-center justify-between p-6 border-b border-border">
-              <h2 class="text-xl font-bold text-text-primary">
+              <h2 class="text-xl font-bold text-text">
                 {{ editingId() ? 'Editar Adición' : 'Nueva Adición' }}
               </h2>
               <button type="button" (click)="closeForm()"
-                      class="text-text-secondary hover:text-text-primary transition">
+                      class="text-text-secondary hover:text-text transition">
                 <span class="material-icons">close</span>
               </button>
             </div>
@@ -117,47 +117,47 @@ import { ConfirmationService } from '../../../../core/services/confirmation.serv
 
               <!-- Nombre -->
               <div>
-                <label class="block text-sm font-medium text-text-primary mb-2">
-                  Nombre <span class="text-red-500">*</span>
+                <label class="block text-sm font-medium text-text mb-2">
+                  Nombre <span class="text-error">*</span>
                 </label>
                 <input type="text" formControlName="name"
                        placeholder="Ej: Leche, Proteína Whey..."
-                       class="w-full px-4 py-2 rounded-lg border border-border bg-surface text-text-primary placeholder-text-secondary focus:border-primary focus:outline-none transition" />
+                       class="w-full px-4 py-2 rounded-lg border border-border bg-surface text-text placeholder-text-secondary focus:border-primary focus:outline-none transition" />
                 @if (form.get('name')?.invalid && form.get('name')?.touched) {
-                  <p class="text-red-500 text-xs mt-1">El nombre es requerido (mín. 2 caracteres)</p>
+                  <p class="text-error text-xs mt-1">El nombre es requerido (mín. 2 caracteres)</p>
                 }
               </div>
 
               <!-- Precio -->
               <div>
-                <label class="block text-sm font-medium text-text-primary mb-2">
-                  Precio ($) <span class="text-red-500">*</span>
+                <label class="block text-sm font-medium text-text mb-2">
+                  Precio ($) <span class="text-error">*</span>
                 </label>
                 <input type="number" formControlName="price"
                        placeholder="0" step="500" min="0"
-                       class="w-full px-4 py-2 rounded-lg border border-border bg-surface text-text-primary focus:border-primary focus:outline-none transition" />
+                       class="w-full px-4 py-2 rounded-lg border border-border bg-surface text-text focus:border-primary focus:outline-none transition" />
                 <p class="text-xs text-text-secondary mt-1">Usa 0 si está incluido sin costo adicional</p>
               </div>
 
               <!-- Orden -->
               <div>
-                <label class="block text-sm font-medium text-text-primary mb-2">
+                <label class="block text-sm font-medium text-text mb-2">
                   Orden de visualización
                 </label>
                 <input type="number" formControlName="order"
                        min="1" placeholder="999"
-                       class="w-full px-4 py-2 rounded-lg border border-border bg-surface text-text-primary focus:border-primary focus:outline-none transition" />
+                       class="w-full px-4 py-2 rounded-lg border border-border bg-surface text-text focus:border-primary focus:outline-none transition" />
               </div>
 
               @if (formError()) {
-                <div class="bg-red-500/10 border border-red-500 text-red-500 px-4 py-3 rounded-lg text-sm">
+                <div class="bg-error/10 border border-error text-error px-4 py-3 rounded-lg text-sm">
                   {{ formError() }}
                 </div>
               }
 
               <div class="flex gap-3 justify-end pt-4 border-t border-border">
                 <button type="button" (click)="closeForm()"
-                        class="px-4 py-2 rounded-lg border border-border text-text-primary hover:bg-background transition font-semibold">
+                        class="px-4 py-2 rounded-lg border border-border text-text hover:bg-background transition font-semibold">
                   Cancelar
                 </button>
                 <button type="submit" [disabled]="form.invalid || isSaving()"

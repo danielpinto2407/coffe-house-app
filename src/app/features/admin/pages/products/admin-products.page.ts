@@ -38,7 +38,7 @@ import { ProductAddition } from '../../../menu/models/product-addition.model';
 
       <!-- ✅ Error de carga global -->
       @if (loadError()) {
-        <div class="bg-red-500/10 border border-red-500 text-red-500 px-4 py-3 rounded-lg mb-6 flex items-start gap-3">
+        <div class="bg-error/10 border border-error text-error px-4 py-3 rounded-lg mb-6 flex items-start gap-3">
           <span class="material-icons mt-0.5">error</span>
           <div>
             <p class="font-semibold">Error cargando datos:</p>
@@ -56,7 +56,7 @@ import { ProductAddition } from '../../../menu/models/product-addition.model';
             <span class="material-icons text-text-secondary">arrow_back</span>
           </a>
           <div>
-            <h1 class="text-2xl font-bold text-text-primary">Gestión de Productos</h1>
+            <h1 class="text-2xl font-bold text-text">Gestión de Productos</h1>
             <p class="text-text-secondary text-sm">
               {{ isLoading() ? 'Cargando...' : products().length + ' productos en total' }}
             </p>
@@ -81,7 +81,7 @@ import { ProductAddition } from '../../../menu/models/product-addition.model';
           placeholder="Buscar producto..."
           [value]="searchQuery()"
           (input)="searchQuery.set($any($event.target).value)"
-          class="w-full pl-10 pr-4 py-2 bg-surface border border-border rounded-lg text-text-primary placeholder-text-secondary focus:outline-none focus:border-primary transition"
+          class="w-full pl-10 pr-4 py-2 bg-surface border border-border rounded-lg text-text placeholder-text-secondary focus:outline-none focus:border-primary transition"
         />
       </div>
 
@@ -122,7 +122,7 @@ import { ProductAddition } from '../../../menu/models/product-addition.model';
                           <span class="material-icons text-text-secondary text-lg">image_not_supported</span>
                         </div>
                       }
-                      <span class="font-medium text-text-primary">{{ product.name }}</span>
+                      <span class="font-medium text-text">{{ product.name }}</span>
                     </div>
                   </td>
                   <td class="px-4 py-3 text-text-secondary hidden md:table-cell text-xs">
@@ -147,7 +147,7 @@ import { ProductAddition } from '../../../menu/models/product-addition.model';
                       <button
                         type="button"
                         (click)="deleteProduct(product.id); $event.stopPropagation()"
-                        class="p-1.5 rounded-lg hover:bg-red-500/10 text-red-500 transition"
+                        class="p-1.5 rounded-lg hover:bg-error/10 text-error transition"
                         aria-label="Eliminar">
                         <span class="material-icons text-lg">close</span>
                       </button>
@@ -176,7 +176,7 @@ import { ProductAddition } from '../../../menu/models/product-addition.model';
                (click)="$event.stopPropagation()">
 
             <div class="flex items-center justify-between mb-6">
-              <h2 class="text-xl font-bold text-text-primary">
+              <h2 class="text-xl font-bold text-text">
                 {{ editingId() === null ? 'Nuevo producto' : 'Editar producto' }}
               </h2>
               <button type="button" (click)="closeForm()"
@@ -191,9 +191,9 @@ import { ProductAddition } from '../../../menu/models/product-addition.model';
               <div>
                 <label class="block text-sm font-medium text-text-secondary mb-1">Nombre *</label>
                 <input formControlName="name" type="text" placeholder="Ej: Café Latte"
-                       class="w-full px-3 py-2 bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary transition" />
+                       class="w-full px-3 py-2 bg-background border border-border rounded-lg text-text focus:outline-none focus:border-primary transition" />
                 @if (form.get('name')?.invalid && form.get('name')?.touched) {
-                  <p class="text-red-500 text-xs mt-1">
+                  <p class="text-error text-xs mt-1">
                     {{ form.get('name')?.getError('required') ? 'El nombre es obligatorio.' : 'Mínimo 2 caracteres.' }}
                   </p>
                 }
@@ -203,9 +203,9 @@ import { ProductAddition } from '../../../menu/models/product-addition.model';
               <div>
                 <label class="block text-sm font-medium text-text-secondary mb-1">Precio *</label>
                 <input formControlName="price" type="number" step="0.01" placeholder="0.00"
-                       class="w-full px-3 py-2 bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary transition" />
+                       class="w-full px-3 py-2 bg-background border border-border rounded-lg text-text focus:outline-none focus:border-primary transition" />
                 @if (form.get('price')?.invalid && form.get('price')?.touched) {
-                  <p class="text-red-500 text-xs mt-1">Ingresa un precio válido mayor a 0.</p>
+                  <p class="text-error text-xs mt-1">Ingresa un precio válido mayor a 0.</p>
                 }
               </div>
 
@@ -213,14 +213,14 @@ import { ProductAddition } from '../../../menu/models/product-addition.model';
               <div>
                 <label class="block text-sm font-medium text-text-secondary mb-1">Categoría *</label>
                 <select formControlName="categoryId"
-                        class="w-full px-3 py-2 bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary transition">
+                        class="w-full px-3 py-2 bg-background border border-border rounded-lg text-text focus:outline-none focus:border-primary transition">
                   <option value="">Selecciona categoría...</option>
                   @for (cat of categories(); track cat.id) {
                     <option [value]="stringifyId(cat.id)">{{ cat.name }}</option>
                   }
                 </select>
                 @if (form.get('categoryId')?.invalid && form.get('categoryId')?.touched) {
-                  <p class="text-red-500 text-xs mt-1">Categoría es requerida</p>
+                  <p class="text-error text-xs mt-1">Categoría es requerida</p>
                 }
               </div>
 
@@ -228,7 +228,7 @@ import { ProductAddition } from '../../../menu/models/product-addition.model';
               <div>
                 <label class="block text-sm font-medium text-text-secondary mb-1">Subcategoría <span class="text-text-secondary text-xs">(Opcional)</span></label>
                 <select formControlName="subcategoryId"
-                        class="w-full px-3 py-2 bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary transition">
+                        class="w-full px-3 py-2 bg-background border border-border rounded-lg text-text focus:outline-none focus:border-primary transition">
                   <option value="">Sin subcategoría (producto directo)</option>
                   @for (subcat of subcategories(); track subcat.id) {
                     <option [value]="stringifyId(subcat.id)">{{ subcat.name }}</option>
@@ -241,7 +241,7 @@ import { ProductAddition } from '../../../menu/models/product-addition.model';
               <div>
                 <label class="block text-sm font-medium text-text-secondary mb-1">Orden de visualización</label>
                 <input formControlName="order" type="number" placeholder="0"
-                       class="w-full px-3 py-2 bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary transition" />
+                       class="w-full px-3 py-2 bg-background border border-border rounded-lg text-text focus:outline-none focus:border-primary transition" />
                 <p class="text-text-secondary text-xs mt-1">Números menores aparecen primero.</p>
               </div>
 
@@ -249,7 +249,7 @@ import { ProductAddition } from '../../../menu/models/product-addition.model';
               <div>
                 <label class="block text-sm font-medium text-text-secondary mb-1">Descripción</label>
                 <textarea formControlName="description" rows="3" placeholder="Descripción del producto..."
-                          class="w-full px-3 py-2 bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary transition resize-none"></textarea>
+                          class="w-full px-3 py-2 bg-background border border-border rounded-lg text-text focus:outline-none focus:border-primary transition resize-none"></textarea>
               </div>
 
               <!-- Imagen con Drag-Drop Inline -->
@@ -259,7 +259,7 @@ import { ProductAddition } from '../../../menu/models/product-addition.model';
                 <!-- URL Input -->
                 <div class="flex gap-2 mb-3">
                   <input formControlName="image" type="url" placeholder="https://..."
-                         class="flex-1 px-3 py-2 bg-background border border-border rounded-lg text-text-primary focus:outline-none focus:border-primary transition" />
+                         class="flex-1 px-3 py-2 bg-background border border-border rounded-lg text-text focus:outline-none focus:border-primary transition" />
                 </div>
 
                 <!-- Preview actual si existe -->
@@ -269,7 +269,7 @@ import { ProductAddition } from '../../../menu/models/product-addition.model';
                     <p class="text-xs text-text-secondary">Imagen actual</p>
                     <button type="button"
                             (click)="clearImage()"
-                            class="text-xs text-red-500 hover:text-red-600 transition self-start">
+                            class="text-xs text-error hover:text-error transition self-start">
                       Eliminar
                     </button>
                   </div>
@@ -295,7 +295,7 @@ import { ProductAddition } from '../../../menu/models/product-addition.model';
                   <div *ngIf="!isUploadingImage()" class="space-y-2">
                     <span class="material-icons text-3xl text-text-secondary block">cloud_upload</span>
                     <div>
-                      <p class="text-sm font-medium text-text-primary">Arrastra la imagen o haz clic para seleccionar</p>
+                      <p class="text-sm font-medium text-text">Arrastra la imagen o haz clic para seleccionar</p>
                       <p class="text-xs text-text-secondary">PNG, JPG o WebP • Máx 5MB</p>
                     </div>
                     <button type="button"
@@ -330,14 +330,14 @@ import { ProductAddition } from '../../../menu/models/product-addition.model';
                 </div>
 
                 <!-- Errores de upload -->
-                <div *ngIf="imageUploadError()" class="mt-2 p-2 bg-red-500/10 border border-red-500/30 rounded text-xs text-red-600">
+                <div *ngIf="imageUploadError()" class="mt-2 p-2 bg-error/10 border border-error/30 rounded text-xs text-error">
                   <p>{{ imageUploadError() }}</p>
                 </div>
               </div>
 
               <!-- Error del formulario -->
               @if (formError()) {
-                <p class="text-red-500 text-sm bg-red-500/10 px-3 py-2 rounded-lg">{{ formError() }}</p>
+                <p class="text-error text-sm bg-error/10 px-3 py-2 rounded-lg">{{ formError() }}</p>
               }
 
               <!-- Botones -->
@@ -367,7 +367,7 @@ import { ProductAddition } from '../../../menu/models/product-addition.model';
             <!-- Header -->
             <div class="flex items-center justify-between p-5 border-b border-border">
               <div>
-                <h2 class="text-lg font-bold text-text-primary">Adiciones</h2>
+                <h2 class="text-lg font-bold text-text">Adiciones</h2>
                 <p class="text-xs text-text-secondary mt-0.5">{{ additionsModalProduct()!.name }}</p>
               </div>
               <button type="button" (click)="closeAdditionsModal()"
@@ -404,7 +404,7 @@ import { ProductAddition } from '../../../menu/models/product-addition.model';
                              (change)="toggleAddition(addition)"
                              class="w-4 h-4 cursor-pointer accent-primary" />
                       <div class="flex-1 min-w-0">
-                        <span class="font-semibold text-sm text-text-primary">{{ addition.name }}</span>
+                        <span class="font-semibold text-sm text-text">{{ addition.name }}</span>
                       </div>
                       <span class="text-sm font-semibold text-primary flex-shrink-0">
                         {{ addition.price > 0 ? '+$' + addition.price : 'Incluido' }}
