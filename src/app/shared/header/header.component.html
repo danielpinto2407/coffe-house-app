@@ -25,15 +25,6 @@
     <!-- 🎮 ACCIONES (agrupadas por propósito) -->
     <div class="flex items-center gap-2 sm:gap-3">
 
-      <!-- ÍCONO CALENDARIO (Desktop) -->
-      <button 
-        type="button"
-        class="hidden sm:inline-flex p-2.5 rounded-lg hover:bg-white/10 transition-colors text-white"
-        aria-label="Calendario"
-        title="Calendario">
-        <span class="material-icons text-xl sm:text-2xl" aria-hidden="true">event</span>
-      </button>
-
       <!-- SELECTOR DE TEMAS (Desktop) -->
       <div class="hidden md:block relative">
         <button 
@@ -81,7 +72,7 @@
         <span class="material-icons text-xl sm:text-2xl" aria-hidden="true">shopping_cart</span>
         
         <!-- Badge: Contador de artículos -->
-        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold
+        <span class="absolute -top-1 -right-1 bg-error text-white text-xs font-bold
                     w-5 h-5 flex items-center justify-center rounded-full shadow-lg"
               *ngIf="cartCount() > 0"
               [attr.aria-label]="'Artículos en el carrito: ' + (cartCount() || 0)">
