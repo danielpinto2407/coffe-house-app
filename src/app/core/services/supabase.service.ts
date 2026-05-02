@@ -27,6 +27,13 @@ export class SupabaseService {
   }
 
   /**
+   * Acceso público al cliente de Supabase
+   */
+  get client(): SupabaseClient {
+    return this.supabase;
+  }
+
+  /**
    * Sube un PDF a Supabase Storage en el bucket 'menu'
    * ✅ Si es 'menu.pdf', sobrescribe el anterior (upsert)
    * @param fileName - Nombre base del archivo

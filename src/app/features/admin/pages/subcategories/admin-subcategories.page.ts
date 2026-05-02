@@ -14,6 +14,7 @@ import { SubcategoryService } from '../../../menu/services/subcategory.service';
 import { CategoryService } from '../../../menu/services/category.service';
 import { ProductService } from '../../../menu/services/product.service';
 import { ConfirmationService } from '../../../../core/services/confirmation.service';
+import { NotificationService } from '../../../../core/services/notification.service';
 
 @Component({
   selector: 'app-admin-subcategories',
@@ -284,6 +285,7 @@ export class AdminSubcategoriesPage implements OnInit {
   private readonly categoryService = inject(CategoryService);
   private readonly productService = inject(ProductService);
   private readonly confirmationService = inject(ConfirmationService);
+  private readonly notification = inject(NotificationService);
 
   // Signals del estado
   protected readonly isLoading = computed(() => this.subcategoryService.loading());
@@ -409,7 +411,7 @@ export class AdminSubcategoriesPage implements OnInit {
 
   protected async deleteSubcategory(id: number): Promise<void> {
     if (this.hasProducts(id)) {
-      alert('No puedes eliminar una subcategoría que tiene productos. Elimina primero los productos.');
+      this.notification.warning('No puedes eliminar una subcategoría que tiene productos. Elimina primero los productos.');
       return;
     }
 
@@ -428,7 +430,7 @@ export class AdminSubcategoriesPage implements OnInit {
       await this.subcategoryService.deleteSubcategory(id);
     } catch (error) {
       const msg = error instanceof Error ? error.message : 'Error al eliminar';
-      alert(`Error: ${msg}`);
+      this.notification.error(msg);
     } finally {
       this.isSaving.set(false);
     }

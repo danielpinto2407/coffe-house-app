@@ -64,7 +64,11 @@ export class CartService {
   }
 
   private computeTotal(items: CartItem[]): number {
-    return items.reduce((acc, it) => acc + (Number(it.product.price || 0) * it.qty), 0);
+    return items.reduce((acc, it) => {
+      // Si el item tiene finalPrice (con adiciones), usar ese; si no, usar precio del producto
+      const itemPrice = it.finalPrice ?? (Number(it.product.price || 0));
+      return acc + (itemPrice * it.qty);
+    }, 0);
   }
 
   private computeCount(items: CartItem[]): number {
@@ -82,21 +86,65 @@ export class CartService {
 
   /**
    * Añade producto al carrito o incrementa cantidad si ya existe
+   * @param product Producto a agregar
+   * @param qty Cantidad
+   * @param selectedAdditions Adiciones seleccionadas (opcional)
+   * @param finalPrice Precio final con adiciones (opcional)
    */
-  addProduct(product: Product | null | undefined, qty = 1): void {
+  addProduct(
+    product: Product | null | undefined,
+    qty = 1,
+    selectedAdditions: any[] = [],
+    finalPrice?: number
+  ): void {
     if (!product?.id || qty <= 0) return;
 
     const items = [...this.itemsSubject.value];
-    const idx = items.findIndex(it => it.product.id === product.id);
+
+    // Buscar item existente con MISMAS adiciones (si las hay)
+    let idx = -1;
+    if (selectedAdditions.length > 0) {
+      // Con adiciones - buscar por adiciones exactas
+      idx = items.findIndex(it => 
+        it.product.id === product.id &&
+        it.selectedAdditions &&
+        this.hasSameAdditions(it.selectedAdditions, selectedAdditions)
+      );
+    } else {
+      // Sin adiciones - buscar por producto
+      idx = items.findIndex(it => 
+        it.product.id === product.id &&
+        (!it.selectedAdditions || it.selectedAdditions.length === 0)
+      );
+    }
+
+    const newItem: CartItem = {
+      product,
+      qty,
+      selectedAdditions: selectedAdditions.length > 0 ? selectedAdditions : undefined,
+      finalPrice: finalPrice || product.price
+    };
 
     if (idx >= 0) {
+      // Incrementar cantidad si el item con mismas adiciones ya existe
       items[idx].qty += qty;
     } else {
-      items.push({ product, qty });
+      // Agregar nuevo item
+      items.push(newItem);
     }
 
     this.itemsSubject.next(items);
     this.saveToStorage(items);
+  }
+
+  /**
+   * Compara si dos arrays de adiciones son iguales
+   */
+  private hasSameAdditions(additions1: any[], additions2: any[]): boolean {
+    if (additions1.length !== additions2.length) return false;
+    const ids1 = additions1.map(a => a.id).sort();
+    const ids2 = additions2.map(a => a.id).sort();
+    return ids1.every((id, idx) => id === ids2[idx]);
   }
 
   /**

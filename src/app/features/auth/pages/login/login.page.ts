@@ -9,7 +9,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
@@ -23,6 +23,7 @@ export class LoginPage {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
@@ -43,7 +44,12 @@ export class LoginPage {
         this.form.controls.email.value,
         this.form.controls.password.value,
       );
-      await this.router.navigate(['/menu']);
+      const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+      if (returnUrl) {
+        await this.router.navigateByUrl(returnUrl);
+      } else {
+        await this.router.navigate(this.auth.isAdmin() ? ['/admin'] : ['/menu']);
+      }
     } catch (err) {
       this.errorMsg.set(err instanceof Error ? err.message : 'Error al iniciar sesión');
     } finally {
