@@ -8,8 +8,3 @@ export interface ProductAddition {
   price: number;
   order: number;
 }
-
-export interface ProductAdditionsConfig {
-  productId: number;
-  additions: ProductAddition[];
-}

@@ -3,7 +3,6 @@ import { ProductModalService } from '../../core/services/product-modal.service';
 import { Product } from '../../features/menu/models/product.model';
 import { CommonModule } from '@angular/common';
 import { CartService } from '../../core/services/cart-service';
-import { ImageOptimizationService } from '../../core/services/image-optimization.service';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -20,7 +19,6 @@ export class ProductCardComponent {
 
   private readonly modal = inject(ProductModalService);
   protected readonly cart = inject(CartService);
-  private readonly imageOpt = inject(ImageOptimizationService);
 
   // ✅ Computed signal para genera URL optimizada
   protected readonly optimizedImage = computed(() => {
