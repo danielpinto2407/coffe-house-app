@@ -21,4 +21,9 @@ export const ADMIN_ROUTES: Routes = [
     loadComponent: () =>
       import('./pages/products/admin-products.page').then(m => m.AdminProductsPage),
   },
+  {
+    path: 'additions',
+    loadComponent: () =>
+      import('./pages/admin-additions-page/admin-additions-page.component').then(m => m.AdminAdditionsPageComponent),
+  },
 ];

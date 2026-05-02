@@ -4,7 +4,7 @@ import { toObservable } from '@angular/core/rxjs-interop';
 import { filter, map, take } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 
-export const adminGuard: CanActivateFn = () => {
+export const adminGuard: CanActivateFn = (route, state) => {
   const auth = inject(AuthService);
   const router = inject(Router);
 
@@ -13,7 +13,7 @@ export const adminGuard: CanActivateFn = () => {
     take(1),
     map(() => {
       if (auth.isAdmin()) return true;
-      if (!auth.isLoggedIn()) return router.createUrlTree(['/auth/login']);
+      if (!auth.isLoggedIn()) return router.createUrlTree(['/auth/login'], { queryParams: { returnUrl: state.url } });
       return router.createUrlTree(['/menu']);
     })
   );

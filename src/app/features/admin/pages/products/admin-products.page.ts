@@ -7,7 +7,6 @@ import {
   OnInit,
   viewChild,
   HostListener,
-  effect,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
@@ -19,7 +18,10 @@ import { SubcategoryService } from '../../../menu/services/subcategory.service';
 import { ImageUploadService } from '../../../../core/services/image-upload.service';
 import { ImageOptimizationService } from '../../../../core/services/image-optimization.service';
 import { ConfirmationService } from '../../../../core/services/confirmation.service';
+import { NotificationService } from '../../../../core/services/notification.service';
 import { StorageIndicatorComponent } from '../../components/storage-indicator/storage-indicator.component';
+import { AdditionsService } from '../../../../core/services/additions.service';
+import { ProductAddition } from '../../../menu/models/product-addition.model';
 
 @Component({
   selector: 'app-admin-products',
@@ -134,6 +136,14 @@ import { StorageIndicatorComponent } from '../../components/storage-indicator/st
                   </td>
                   <td class="px-4 py-3">
                     <div class="flex items-center justify-center gap-2">
+                      <button
+                        type="button"
+                        (click)="openAdditionsModal(product); $event.stopPropagation()"
+                        class="p-1.5 rounded-lg hover:bg-primary/10 text-primary transition"
+                        title="Gestionar adiciones"
+                        aria-label="Gestionar adiciones">
+                        <span class="material-icons text-lg">tune</span>
+                      </button>
                       <button
                         type="button"
                         (click)="deleteProduct(product.id); $event.stopPropagation()"
@@ -348,6 +358,73 @@ import { StorageIndicatorComponent } from '../../components/storage-indicator/st
         </div>
       }
 
+      <!-- Modal gestión de adiciones por producto -->
+      @if (additionsModalProduct()) {
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+             (click)="closeAdditionsModal()">
+          <div class="bg-surface rounded-2xl shadow-xl w-full max-w-md max-h-[80vh] flex flex-col"
+               (click)="$event.stopPropagation()">
+            <!-- Header -->
+            <div class="flex items-center justify-between p-5 border-b border-border">
+              <div>
+                <h2 class="text-lg font-bold text-text-primary">Adiciones</h2>
+                <p class="text-xs text-text-secondary mt-0.5">{{ additionsModalProduct()!.name }}</p>
+              </div>
+              <button type="button" (click)="closeAdditionsModal()"
+                      class="p-1.5 rounded-lg hover:bg-background transition text-text-secondary">
+                <span class="material-icons">close</span>
+              </button>
+            </div>
+
+            <!-- Body -->
+            <div class="flex-1 overflow-y-auto p-5">
+              @if (loadingAdditions()) {
+                <div class="flex items-center justify-center py-8">
+                  <span class="material-icons animate-spin text-primary">refresh</span>
+                </div>
+              } @else if (allAdditions().length === 0) {
+                <p class="text-center text-text-secondary py-8 text-sm">
+                  No hay adiciones creadas aún.<br>
+                  <a routerLink="/admin/additions" class="text-primary underline">Crear adiciones</a>
+                </p>
+              } @else {
+                <p class="text-xs text-text-secondary mb-4">
+                  Marca las adiciones disponibles para este producto:
+                </p>
+                <div class="space-y-2">
+                  @for (addition of allAdditions(); track addition.id) {
+                    <label class="flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition
+                                  hover:border-primary"
+                           [class.border-primary]="productAdditionIds().has(addition.id!)"
+                           [class.bg-primary]="productAdditionIds().has(addition.id!)"
+                           [class.bg-opacity-5]="productAdditionIds().has(addition.id!)"
+                           [class.border-border]="!productAdditionIds().has(addition.id!)">
+                      <input type="checkbox"
+                             [checked]="productAdditionIds().has(addition.id!)"
+                             (change)="toggleAddition(addition)"
+                             class="w-4 h-4 cursor-pointer accent-primary" />
+                      <div class="flex-1 min-w-0">
+                        <span class="font-semibold text-sm text-text-primary">{{ addition.name }}</span>
+                      </div>
+                      <span class="text-sm font-semibold text-primary flex-shrink-0">
+                        {{ addition.price > 0 ? '+$' + addition.price : 'Incluido' }}
+                      </span>
+                    </label>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Footer -->
+            <div class="p-5 border-t border-border">
+              <p class="text-xs text-text-secondary text-center">
+                Los cambios se guardan automáticamente al marcar/desmarcar
+              </p>
+            </div>
+          </div>
+        </div>
+      }
+
     </div>
   `,
 })
@@ -359,6 +436,8 @@ export class AdminProductsPage implements OnInit {
   private readonly imageUploadService = inject(ImageUploadService);
   private readonly imageOptimization = inject(ImageOptimizationService);
   private readonly confirmationService = inject(ConfirmationService);
+  private readonly notification = inject(NotificationService);
+  private readonly additionsService = inject(AdditionsService);
 
   // ✅ SIGNALS: Estado reactivo desde servicios
   protected readonly isLoading = computed(() => this.productService.loading());
@@ -372,6 +451,12 @@ export class AdminProductsPage implements OnInit {
   protected readonly isSaving = signal(false);
   protected readonly formError = signal<string | null>(null);
   protected readonly loadError = signal<string | null>(null);
+
+  // 🔗 Adiciones por producto
+  protected readonly additionsModalProduct = signal<Product | null>(null);
+  protected readonly allAdditions = signal<ProductAddition[]>([]);
+  protected readonly productAdditionIds = signal<Set<number>>(new Set());
+  protected readonly loadingAdditions = signal(false);
 
   // 📸 Signals para upload de imagen inline
   protected readonly isImageDragging = signal(false);
@@ -551,7 +636,7 @@ export class AdminProductsPage implements OnInit {
       await this.productService.deleteProduct(id);
     } catch (error) {
       const msg = error instanceof Error ? error.message : 'Error desconocido';
-      alert(`Error al eliminar: ${msg}`);
+      this.notification.error(`Error al eliminar: ${msg}`);
     }
   }
 
@@ -560,7 +645,53 @@ export class AdminProductsPage implements OnInit {
     return maxOrder + 1;
   }
 
-  // 📸 Métodos para upload inline de imagen
+  // � Métodos para gestión de adiciones por producto
+  protected openAdditionsModal(product: Product): void {
+    this.additionsModalProduct.set(product);
+    this.loadingAdditions.set(true);
+
+    this.additionsService.getAllAdditions().subscribe(all => {
+      this.allAdditions.set(all);
+      this.additionsService.getAdditionsForProduct(product.id).subscribe(linked => {
+        this.productAdditionIds.set(new Set(linked.map(a => a.id)));
+        this.loadingAdditions.set(false);
+      });
+    });
+  }
+
+  protected closeAdditionsModal(): void {
+    this.additionsModalProduct.set(null);
+    this.allAdditions.set([]);
+    this.productAdditionIds.set(new Set());
+  }
+
+  protected toggleAddition(addition: ProductAddition): void {
+    const productId = this.additionsModalProduct()?.id;
+    if (!productId || !addition.id) return;
+
+    const isLinked = this.productAdditionIds().has(addition.id);
+
+    if (isLinked) {
+      this.additionsService.removeAdditionFromProduct(productId, addition.id).subscribe({
+        next: () => {
+          const updated = new Set(this.productAdditionIds());
+          updated.delete(addition.id);
+          this.productAdditionIds.set(updated);
+        },
+      });
+    } else {
+      this.additionsService.addAdditionToProduct(productId, addition.id).subscribe({
+        next: () => {
+          const updated = new Set(this.productAdditionIds());
+          updated.add(addition.id);
+          this.productAdditionIds.set(updated);
+        },
+      });
+    }
+  }
+
+
+  // �📸 Métodos para upload inline de imagen
   protected onImageDragOver(event: DragEvent): void {
     event.preventDefault();
     event.stopPropagation();

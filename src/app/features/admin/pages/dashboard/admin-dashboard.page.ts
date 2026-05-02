@@ -48,6 +48,17 @@ import { QrModalComponent } from '../../../../overlays/qr-modal/qr-modal.compone
           <p class="text-text-secondary text-sm">Agregar, editar y eliminar productos del menú.</p>
         </a>
         
+        <a
+          routerLink="/admin/additions"
+          class="block p-6 rounded-xl border border-border bg-surface hover:border-primary transition-colors"
+        >
+          <div class="flex items-center gap-3 mb-2">
+            <span class="material-icons text-primary text-2xl">add_circle</span>
+            <h2 class="text-xl font-semibold text-text-primary">Adiciones</h2>
+          </div>
+          <p class="text-text-secondary text-sm">Gestionar adiciones y personalizaciones de productos.</p>
+        </a>
+
         <!-- ✅ NUEVA TARJETA: Menú PDF/QR -->
         <div class="block p-6 rounded-xl border border-border bg-surface hover:border-secondary transition-colors cursor-pointer"
              (click)="togglePdfActions()">

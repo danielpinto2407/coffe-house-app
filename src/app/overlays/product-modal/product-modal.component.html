@@ -53,11 +53,34 @@
           {{ product.description }}
         </p>
 
-        <p class="text-xl font-bold text-primary">
-          $ {{ product.price | number:'1.0-0' }}
+        <!-- Precio -->
+        <div class="bg-secondary/10 p-3 rounded-lg">
+          <p class="text-xs text-text-secondary mb-1">Precio base</p>
+          <p class="text-xl font-bold text-primary">
+            $ {{ product.price | number:'1.0-0' }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Selector de Adiciones -->
+      <div class="mt-6 mb-6">
+        <app-product-additions-selector 
+          [productId]="product.id"
+          (selectionsChanged)="onAdditionsChanged($event)">
+        </app-product-additions-selector>
+      </div>
+
+      <!-- Precio Final (si hay adiciones) -->
+      <div 
+        *ngIf="hasPriceIncrease()"
+        class="mb-4 p-3 rounded-lg border-2 border-primary bg-primary/5">
+        <p class="text-xs text-text-secondary mb-1">Precio final</p>
+        <p class="text-2xl font-bold text-primary">
+          $ {{ finalPrice() | number:'1.0-0' }}
         </p>
       </div>
 
+      <!-- Botón agregar al carrito -->
       <div class="mt-6">
         <button
           type="button"

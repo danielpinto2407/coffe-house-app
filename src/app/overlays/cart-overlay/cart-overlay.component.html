@@ -49,7 +49,25 @@
       <!-- Info -->
       <div class="flex-1">
         <p class="font-semibold text-white">{{ item.product.name }}</p>
-        <p class="text-sm text-white/70">$ {{ item.product.price | number }}</p>
+        
+        <!-- Precio base o final -->
+        <p class="text-sm text-white/70">
+          <span *ngIf="!item.finalPrice">$ {{ item.product.price | number }}</span>
+          <span *ngIf="item.finalPrice">$ {{ item.finalPrice | number }}</span>
+        </p>
+
+        <!-- Adiciones si existen -->
+        <div *ngIf="item.selectedAdditions && item.selectedAdditions.length > 0" class="mt-1">
+          <p class="text-xs text-white/50 mb-1">Adiciones:</p>
+          <div class="flex flex-wrap gap-1">
+            <span 
+              *ngFor="let addition of item.selectedAdditions"
+              class="text-xs bg-white/10 px-2 py-1 rounded"
+              [title]="addition.name + ' +$' + addition.price">
+              {{ addition.name }}
+            </span>
+          </div>
+        </div>
 
         <!-- Controles -->
         <div class="flex items-center gap-2 mt-2">
