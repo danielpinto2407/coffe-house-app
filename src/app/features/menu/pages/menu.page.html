@@ -1,9 +1,35 @@
-<!-- ✅ CONTENEDOR PARA BUSCADOR PEGADO -->
-<div class="fixed-search-container">
-  <app-search-bar (search)="onSearch($event)"></app-search-bar>
+<!-- ✅ CONTENEDOR FLOTANTE: Buscador + Categorías pegados al header -->
+<div class="floating-sticky-container">
+  <div class="fixed-search-container">
+    <app-search-bar (search)="onSearch($event)"></app-search-bar>
+  </div>
+  
+  <!-- ✅ CARRUSEL DE CATEGORÍAS (PILL TABS) - Ahora en contenedor flotante -->
+  @if (categories().length > 0 && !isSearching()) {
+    <div class="sticky-categories">
+      <div class="category-tabs-wrapper">
+        <div class="category-tabs scrollbar-hide" #categoryTabs role="tablist" aria-label="Categorías del menú">
+          @for (category of categories(); track category.id) {
+            <button
+              (click)="onSelectCategory(category.id)"
+              [class.active]="selectedCategoryId() === category.id"
+              [attr.aria-selected]="selectedCategoryId() === category.id"
+              [attr.aria-label]="category.name + (selectedCategoryId() === category.id ? ' (seleccionada)' : '')"
+              role="tab"
+              type="button"
+              class="category-pill"
+            >
+              <span class="pill-content">{{ category.name }}</span>
+            </button>
+          }
+        </div>
+        <div class="category-tabs-fade" aria-hidden="true"></div>
+      </div>
+    </div>
+  }
 </div>
 
-<!-- ✅ CONTENEDOR PRINCIPAL CON PADDING PARA BUSCADOR FIJO -->
+<!-- ✅ CONTENEDOR PRINCIPAL CON PADDING PARA FLOATERS -->
 <div class="menu-with-fixed-search">
   
 <!-- ✅ Estado de carga mejorado -->
@@ -28,50 +54,17 @@
       }
 
       @if (allSearchProducts().length > 0) {
-        <!-- Grid de productos: Desktop (grid) / Mobile (flex col) -->
-        <div class="hidden md:grid gap-8 sm:gap-10"
-             style="grid-template-columns: repeat(auto-fit, minmax(130px,1fr));">
-
+        <div class="product-grid">
           @for (prod of allSearchProducts(); track prod.id) {
             <app-product-card [product]="prod"></app-product-card>
           }
-
-        </div>
-
-        <!-- Layout móvil: Flex column -->
-        <div class="md:hidden flex flex-col gap-3">
-
-          @for (prod of allSearchProducts(); track prod.id) {
-            <app-product-card [product]="prod"></app-product-card>
-          }
-
         </div>
       }
     }
 
-    <!-- 📋 MODO NORMAL: Mostrar categorías y contenido seleccionado -->
+    <!-- 📋 MODO NORMAL: Mostrar contenido seleccionado -->
     @if (!isSearching()) {
       <div>
-        <!-- ✅ CARRUSEL DE CATEGORÍAS (TABS) CON SCROLL HORIZONTAL -->
-        @if (categories().length > 0) {
-          <div class="mb-6 sticky-categories">
-            <!-- Scroll horizontal de categorías -->
-            <div class="category-tabs scrollbar-hide">
-              @for (category of categories(); track category.id) {
-                <button
-                  (click)="onSelectCategory(category.id)"
-                  [class.border-b-2]="selectedCategoryId() === category.id"
-                  [class.border-primary]="selectedCategoryId() === category.id"
-                  [class.text-primary]="selectedCategoryId() === category.id"
-                  [class.text-text-secondary]="selectedCategoryId() !== category.id"
-                  class="px-4 py-2 whitespace-nowrap font-semibold transition-all duration-200 hover:text-primary"
-                >
-                  {{ category.name }}
-                </button>
-              }
-            </div>
-          </div>
-        }
 
         <!-- Sin resultados -->
         @if (menu().length === 0) {
@@ -82,7 +75,7 @@
 
         <!-- ✅ CONTENIDO DE LA CATEGORÍA SELECCIONADA -->
         @if (selectedCategoryData()) {
-          <div>
+          <div class="mt-0">
             <h2 class="text-2xl font-bold text-primary mb-3">
               {{ selectedCategoryData()?.name }}
             </h2>
@@ -94,23 +87,10 @@
             @if (selectedCategoryData(); as category) {
               @if (category.products && category.products.length > 0) {
                 <div class="mb-6">
-                  <!-- Grid de productos: Desktop (grid) / Mobile (flex col) -->
-                  <div class="hidden md:grid gap-8 sm:gap-10"
-                       style="grid-template-columns: repeat(auto-fit, minmax(130px,1fr));">
-
+                  <div class="product-grid">
                     @for (prod of category.products; track prod.id) {
                       <app-product-card [product]="prod"></app-product-card>
                     }
-
-                  </div>
-
-                  <!-- Layout móvil: Flex column -->
-                  <div class="md:hidden flex flex-col gap-3">
-
-                    @for (prod of category.products; track prod.id) {
-                      <app-product-card [product]="prod"></app-product-card>
-                    }
-
                   </div>
                 </div>
               }
@@ -123,24 +103,10 @@
                   <h3 class="text-xl font-semibold text-primary mb-3">
                     {{ sub.name }}
                   </h3>
-
-                  <!-- Grid de productos: Desktop (grid) / Mobile (flex col) -->
-                  <div class="hidden md:grid gap-8 sm:gap-10"
-                       style="grid-template-columns: repeat(auto-fit, minmax(130px,1fr));">
-
+                  <div class="product-grid">
                     @for (prod of sub.products; track prod.id) {
                       <app-product-card [product]="prod"></app-product-card>
                     }
-
-                  </div>
-
-                  <!-- Layout móvil: Flex column -->
-                  <div class="md:hidden flex flex-col gap-3">
-
-                    @for (prod of sub.products; track prod.id) {
-                      <app-product-card [product]="prod"></app-product-card>
-                    }
-
                   </div>
                 </div>
               }

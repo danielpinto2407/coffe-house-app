@@ -4,6 +4,7 @@
 
 /* Variables CSS por defecto - Tema Clásico (sincronizado con theme.config.ts) */
 :root {
+  --header-height: 80px;
   --color-primary: #5C2E10;
   --color-secondary: #F5E6CC;
   --color-tertiary: #F5E6CC;
