@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, inject, DestroyRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, DestroyRef, ChangeDetectionStrategy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { debounceTime, Subject, switchMap, tap, shareReplay } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -12,11 +12,14 @@ import { MenuStructure } from '../models/menu-structure.model';
   standalone: true,
   imports: [CommonModule, ProductCardComponent, SearchBarComponent],
   templateUrl: './menu.page.html',
+  styleUrls: ['./menu.page.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MenuPage implements OnInit {
+export class MenuPage implements OnInit, AfterViewInit {
   private readonly menuApi = inject(MenuApiService);
   private readonly destroyRef = inject(DestroyRef);
+
+  @ViewChild('categoryTabs') categoryTabs?: ElementRef<HTMLDivElement>;
 
   // ✅ SIGNALS: Estado reactivo moderno
   protected readonly fullMenu = signal<MenuStructure[]>([]);
@@ -107,11 +110,43 @@ export class MenuPage implements OnInit {
       .subscribe();
   }
 
+  ngAfterViewInit(): void {
+    // ✅ Scroll automático cuando cambia la categoría seleccionada
+    // Esperar a que el template se renderice antes de hacer scroll
+    setTimeout(() => this.scrollToActivePill(), 0);
+  }
+
   /**
-   * ✅ Cambiar categoría seleccionada
+   * ✅ Cambiar categoría seleccionada y scroll automático
    */
   onSelectCategory(categoryId: number): void {
     this.selectedCategoryId.set(categoryId);
+    // ✅ Realizar scroll suave al pill activo en el siguiente ciclo
+    setTimeout(() => this.scrollToActivePill(), 0);
+  }
+
+  /**
+   * ✅ Scroll automático suave al pill activo
+   */
+  private scrollToActivePill(): void {
+    if (!this.categoryTabs) return;
+
+    const container = this.categoryTabs.nativeElement;
+    const activeButton = container.querySelector('.category-pill.active') as HTMLElement;
+
+    if (activeButton) {
+      const buttonLeft = activeButton.offsetLeft;
+      const buttonWidth = activeButton.offsetWidth;
+      const containerWidth = container.offsetWidth;
+
+      // ✅ Calcular scroll necesario para centrar el botón activo
+      const scrollPos = buttonLeft - (containerWidth / 2) + (buttonWidth / 2);
+
+      container.scrollTo({
+        left: Math.max(0, scrollPos),
+        behavior: 'smooth'
+      });
+    }
   }
 
   /**

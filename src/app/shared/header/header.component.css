@@ -1,5 +1,5 @@
 /* ✅ Header fijo en mobile */
-@media (max-width: 640px) {
+@media (max-width: 639px) {
   header {
     position: fixed;
     top: 0;
@@ -12,7 +12,7 @@
 }
 
 /* En desktop: header normal */
-@media (min-width: 641px) {
+@media (min-width: 640px) {
   header {
     position: static;
     box-shadow: none;
