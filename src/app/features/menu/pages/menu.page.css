@@ -43,7 +43,7 @@
 /* ✅ CONTENEDOR PRINCIPAL: Solo este scrollea, el resto estático */
 .menu-with-fixed-search {
   position: fixed;
-  top: calc(var(--header-height, 80px) + 112px);
+  top: calc(var(--header-height, 80px) + 154px);
   left: 0;
   right: 0;
   bottom: 0;
