@@ -1,4 +1,5 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
+import { Subject } from 'rxjs';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { Category } from '../models/category.model';
 
@@ -12,6 +13,10 @@ export class CategoryService {
   private readonly _categories = signal<Category[]>([]);
   private readonly _loading = signal(false);
   private readonly _error = signal<string | null>(null);
+
+  // ✅ NUEVO: Subject que emite cuando hay cambios en categorías
+  private readonly categoryChangedSubject = new Subject<void>();
+  readonly categoryChanged$ = this.categoryChangedSubject.asObservable();
 
   readonly categories = computed(() => this._categories());
   readonly loading = computed(() => this._loading());
@@ -46,6 +51,8 @@ export class CategoryService {
       
       if (newCategory) {
         this._categories.set([...this.categories(), newCategory as Category]);
+        // ✅ Emitir evento de cambio
+        this.categoryChangedSubject.next();
       }
 
       return newCategory as Category;
@@ -68,6 +75,8 @@ export class CategoryService {
           const updated_categories = [...this.categories()];
           updated_categories[index] = { ...updated_categories[index], ...updates };
           this._categories.set(updated_categories);
+          // ✅ Emitir evento de cambio
+          this.categoryChangedSubject.next();
         }
       }
 
