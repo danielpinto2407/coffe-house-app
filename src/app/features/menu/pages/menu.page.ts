@@ -6,6 +6,7 @@ import { ProductCardComponent } from '../../../shared/product-card/product-card.
 import { SearchBarComponent } from '../../../shared/components/search-bar/search-bar.component';
 import { CategoryCardComponent } from '../components/category-card/category-card.component';
 import { MenuApiService } from '../services/menu-api.service';
+import { ProductService } from '../services/product.service';
 import { MenuStructure } from '../models/menu-structure.model';
 
 @Component({
@@ -18,6 +19,7 @@ import { MenuStructure } from '../models/menu-structure.model';
 })
 export class MenuPage implements OnInit, AfterViewInit {
   private readonly menuApi = inject(MenuApiService);
+  private readonly productService = inject(ProductService);
   private readonly destroyRef = inject(DestroyRef);
 
   @ViewChild('categoryTabs') categoryTabs?: ElementRef<HTMLDivElement>;
@@ -27,6 +29,9 @@ export class MenuPage implements OnInit, AfterViewInit {
   protected readonly isLoading = signal(true);
   protected readonly selectedCategoryId = signal<number | null>(null);
   protected readonly searchTerm = signal<string>('');
+
+  // ✅ SIMPLE: Mostrar notificación cuando hay cambios
+  protected readonly showUpdateNotification = signal(false);
 
   // ✅ COMPUTED: ¿Estamos en modo búsqueda?
   protected readonly isSearching = computed(() => this.searchTerm().trim().length > 0);
@@ -93,6 +98,14 @@ export class MenuPage implements OnInit, AfterViewInit {
   constructor() {
     // ✅ Suscribirse al observable
     this.filteredMenu$.subscribe();
+
+    // ✅ SIMPLE: Mostrar notificación cuando detecte cambios
+    this.productService.productsChanged$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.showUpdateNotification.set(true);
+        setTimeout(() => this.showUpdateNotification.set(false), 2500);
+      });
   }
 
   ngOnInit(): void {

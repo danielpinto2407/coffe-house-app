@@ -1,6 +1,7 @@
-import { Injectable, inject } from '@angular/core';
-import { Observable, from, of } from 'rxjs';
-import { map, shareReplay, switchMap, catchError } from 'rxjs/operators';
+import { Injectable, inject, DestroyRef } from '@angular/core';
+import { Observable, from, merge } from 'rxjs';
+import { map, shareReplay, switchMap, tap } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MenuStructure, SearchableProduct } from '../models/menu-structure.model';
 import { CategoryService } from './category.service';
 import { SubcategoryService } from './subcategory.service';
@@ -13,12 +14,24 @@ export class MenuApiService {
   private readonly categoryService = inject(CategoryService);
   private readonly subcategoryService = inject(SubcategoryService);
   private readonly productService = inject(ProductService);
+  private readonly destroyRef = inject(DestroyRef);
 
-  // ✅ Cache del menú completo: una vez cargado, no se reconstruye
   private fullMenu$: Observable<MenuStructure[]> | null = null;
-
-  // ✅ Índice plano de todos los productos para búsqueda rápida
   private searchIndex: SearchableProduct[] = [];
+
+  constructor() {
+    // ✅ SIMPLE: Escuchar cambios de productos, categorías y subcategorías
+    merge(
+      this.productService.productsChanged$,
+      this.categoryService.categoryChanged$,
+      this.subcategoryService.subcategoryChanged$
+    )
+    .pipe(takeUntilDestroyed(this.destroyRef))
+    .subscribe(() => {
+      console.log('[MenuApiService] 🔄 Cambio detectado, invalidando caché...');
+      this.invalidateCache();
+    });
+  }
 
   /**
    * ✅ Obtiene el menú completo desde Supabase
@@ -188,6 +201,16 @@ export class MenuApiService {
           .filter(sub => sub.products.length > 0)
       }))
       .filter(cat => cat.subcategories.length > 0);
+  }
+
+  /**
+   * ✅ NUEVA: Invalidar caché del menú
+   * Se llama automáticamente cuando se detectan cambios en tiempo real
+   */
+  private invalidateCache(): void {
+    this.fullMenu$ = null;
+    this.searchIndex = [];
+    console.log('[MenuApiService] ✅ Caché invalidado, la próxima carga será fresca');
   }
 }
 
