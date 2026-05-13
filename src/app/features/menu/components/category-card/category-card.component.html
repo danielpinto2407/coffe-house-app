@@ -1,0 +1,80 @@
+<!-- Accordion header - Full width -->
+<button
+  type="button"
+  (click)="toggleExpand()"
+  class="w-full relative h-28 md:h-36 overflow-hidden border-2 border-secondary/30 hover:border-primary transition-all duration-300 flex flex-col justify-end"
+>
+  <!-- Imagen de fondo -->
+  @if (categoryImage()) {
+    <img
+      [src]="categoryImage()"
+      [alt]="category().name"
+      class="absolute inset-0 w-full h-full object-cover transition-opacity duration-300"
+      [class.opacity-60]="isExpanded()"
+    />
+  }
+
+  <!-- Overlay oscuro gradiente -->
+  <div
+    class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"
+  ></div>
+
+  <!-- Contenido del header -->
+  <div class="relative z-10 p-4 text-white">
+    <div class="flex items-center justify-between">
+      <div class="flex-1">
+        <h3 class="font-bold text-lg md:text-xl">
+          {{ category().name }}
+        </h3>
+        <p class="text-white/80 text-xs md:text-sm mt-1 line-clamp-1">
+          {{ category().description }}
+        </p>
+      </div>
+      <!-- Icono de expand/collapse -->
+      <div class="ml-3 flex-shrink-0">
+        <span class="material-icons transition-transform duration-300" [class.rotate-180]="isExpanded()">
+          expand_more
+        </span>
+      </div>
+    </div>
+  </div>
+</button>
+
+<!-- Contenido expandido -->
+@if (isExpanded()) {
+  <div class="p-4 bg-surface border-2 border-secondary/30 border-t-0 animate-in fade-in slide-in-from-top-2 duration-300 w-full">
+    
+    @if (hasProducts()) {
+      <!-- Productos directos de la categoría -->
+      @if (directProducts().length > 0) {
+        <div class="mb-6 w-full">
+          <div class="product-grid">
+            @for (product of directProducts(); track product.id) {
+              <app-product-card [product]="product"></app-product-card>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Subcategorías con sus productos -->
+      @if (hasSubcategoryProducts()) {
+        @for (sub of category().subcategories; track sub.id) {
+          @if (sub.products.length > 0) {
+            <div class="mb-6 w-full">
+              <h4 class="font-semibold text-primary mb-3 text-sm md:text-base">
+                {{ sub.name }}
+              </h4>
+              <div class="product-grid">
+                @for (product of sub.products; track product.id) {
+                  <app-product-card [product]="product"></app-product-card>
+                }
+              </div>
+            </div>
+          }
+        }
+      }
+    } @else {
+      <p class="text-center text-secondary py-4">No hay productos disponibles</p>
+    }
+  </div>
+}

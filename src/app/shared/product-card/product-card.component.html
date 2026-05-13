@@ -2,14 +2,14 @@
   (click)="openProduct()"
   (keydown.enter)="openProduct()"
   tabindex="0"
+  role="button"
   [style.backgroundColor]="'var(--color-surface)'"
-  class="rounded-2xl shadow-md hover:shadow-xl transition
-         cursor-pointer duration-300">
+  class="w-full h-full rounded-2xl shadow-md hover:shadow-lg transition-shadow duration-300 cursor-pointer overflow-hidden flex flex-col">
 
   <!-- LAYOUT MÓVIL: Horizontal (flex) -->
-  <div class="md:hidden p-3 flex flex-row items-center gap-4 text-left border border-border">
+  <div class="flex md:hidden flex-row items-center justify-between gap-3 p-3 border border-border/30 h-full w-full">
     <!-- Imagen (izquierda) -->
-    <div class="w-24 h-24 rounded-lg overflow-hidden shadow-sm flex-shrink-0 bg-text/10">
+    <div class="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-background/50">
       <img 
         [src]="optimizedImage().src"
         [srcset]="optimizedImage().srcset"
@@ -17,26 +17,26 @@
         [alt]="product().name"
         loading="lazy"
         decoding="async"
-        class="w-full h-full object-cover transition-opacity duration-300"
+        class="w-full h-full object-cover"
       >
     </div>
 
     <!-- Información (centro) -->
-    <div class="flex-1 min-w-0">
+    <div class="flex-1 min-w-0 flex flex-col justify-between">
       <!-- Título -->
-      <h3 class="text-base font-semibold text-text truncate" style="color: var(--color-text)">
+      <h3 class="text-sm font-semibold text-text line-clamp-1">
         {{ product().name }}
       </h3>
 
       <!-- Descripción corta -->
       @if (product().description) {
-        <p class="text-xs text-text-secondary line-clamp-1 mt-0.5">
+        <p class="text-xs text-text-secondary line-clamp-1 mt-1">
           {{ product().description }}
         </p>
       }
 
       <!-- Precio -->
-      <p class="text-lg font-bold text-text mt-1" style="color: var(--color-text)">
+      <p class="text-base font-bold text-primary mt-2">
         ${{ product().price | number:'1.0-0' }}
       </p>
     </div>
@@ -44,18 +44,18 @@
     <!-- Botón (derecha) -->
     <button
       (click)="addToCart($event)"
+      type="button"
       [style.backgroundColor]="'var(--color-primary)'"
-      class="flex-shrink-0 w-10 h-10 rounded-lg text-white font-bold text-xl flex items-center justify-center
-             hover:brightness-90 transition hover:shadow-lg"
+      class="flex-shrink-0 w-10 h-10 rounded-lg text-white font-bold text-xl flex items-center justify-center hover:brightness-90 transition"
       aria-label="Agregar a carrito">
       +
     </button>
   </div>
 
   <!-- LAYOUT DESKTOP: Vertical (flex-col) -->
-  <div class="hidden md:flex md:flex-col md:items-center md:text-center md:p-4">
+  <div class="hidden md:flex flex-col items-center justify-between h-full w-full p-4 gap-3">
     <!-- Imagen -->
-    <div class="w-32 h-32 rounded-xl overflow-hidden shadow-md mb-3 bg-text/10">
+    <div class="w-28 h-28 rounded-xl overflow-hidden bg-background/50">
       <img 
         [src]="optimizedImage().src"
         [srcset]="optimizedImage().srcset"
@@ -63,26 +63,29 @@
         [alt]="product().name"
         loading="lazy"
         decoding="async"
-        class="w-full h-full object-cover transition-opacity duration-300"
+        class="w-full h-full object-cover"
       >
     </div>
 
-    <!-- Título -->
-    <h3 class="text-lg font-semibold text-text tracking-wide" style="color: var(--color-text)">
-      {{ product().name }}
-    </h3>
+    <!-- Información -->
+    <div class="flex-1 flex flex-col items-center justify-center text-center w-full min-w-0">
+      <!-- Título -->
+      <h3 class="text-sm font-semibold text-text line-clamp-2">
+        {{ product().name }}
+      </h3>
 
-    <!-- Precio -->
-    <p class="text-xl font-bold text-text mt-1" style="color: var(--color-text)">
-      ${{ product().price | number:'1.0-0' }}
-    </p>
+      <!-- Precio -->
+      <p class="text-base font-bold text-primary mt-2">
+        ${{ product().price | number:'1.0-0' }}
+      </p>
+    </div>
 
     <!-- Botón -->
     <button
       (click)="addToCart($event)"
+      type="button"
       [style.backgroundColor]="'var(--color-primary)'"
-      class="mt-4 w-full text-white font-medium px-4 py-2 rounded-xl 
-             hover:brightness-90 transition">
+      class="w-full text-white font-medium text-sm px-3 py-2 rounded-lg hover:brightness-90 transition">
       Pedir
     </button>
   </div>

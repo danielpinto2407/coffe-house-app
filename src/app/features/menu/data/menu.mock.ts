@@ -3,9 +3,9 @@ import { Subcategory } from "../models/subcategory.model";
 import { Product } from "../models/product.model";
 
 export const CATEGORIES: Category[] = [
-  { id: 1, name: "Bebidas", order: 1, description: "Refrescos, cafés y tés para cualquier momento del día." },
-  { id: 2, name: "Postres", order: 2, description: "Delicias dulces para endulzar tu jornada." },
-  { id: 3, name: "Alimentos", order: 3, description: "Comidas nutritivas y energéticas para tu día." },
+  { id: 1, name: "Bebidas", order: 1, description: "Refrescos, cafés y tés para cualquier momento del día.", image: "assets/img/logo.png" },
+  { id: 2, name: "Postres", order: 2, description: "Delicias dulces para endulzar tu jornada.", image: "assets/img/logo.png" },
+  { id: 3, name: "Alimentos", order: 3, description: "Comidas nutritivas y energéticas para tu día.", image: "assets/img/logo.png" },
 ];
 
 export const SUBCATEGORIES: Subcategory[] = [
