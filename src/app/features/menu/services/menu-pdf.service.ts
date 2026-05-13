@@ -38,6 +38,7 @@ interface PdfConfig {
     emojiSize: number;
     titleSize: number;
     subtitleSize: number;
+    claimSize: number;
     subtitleMargin: number;
   };
   decorativeLine: {
@@ -48,10 +49,15 @@ interface PdfConfig {
     lineSpacing: number;
   };
   content: {
+    rhythmUnit: number;
     dottedLineWidth: number;
     categoryTitleSize: number;
     descriptionSize: number;
     productLineWidth: number;
+    productCardHeight: number;
+    productImageSize: number;
+    productNameMaxChars: number;
+    productDescriptionMaxChars: number;
   };
   footer: {
     fontSize: number;
@@ -71,6 +77,7 @@ const PDF_CONFIG: PdfConfig = {
     emojiSize: 72,
     titleSize: 32,
     subtitleSize: 12,
+    claimSize: 10,
     subtitleMargin: 120,
   },
   decorativeLine: {
@@ -81,10 +88,15 @@ const PDF_CONFIG: PdfConfig = {
     lineSpacing: 8,
   },
   content: {
+    rhythmUnit: 8,
     dottedLineWidth: 0.5,
     categoryTitleSize: 18,
     descriptionSize: 9,
     productLineWidth: 0.3,
+    productCardHeight: 160,
+    productImageSize: 72,
+    productNameMaxChars: 32,
+    productDescriptionMaxChars: 50,
   },
   footer: {
     fontSize: 8,
@@ -226,14 +238,11 @@ export class MenuPdfService {
       }
     }
 
-    // Obtener el logo una sola vez para reutilizarlo en productos sin imagen
-    const logoBase64 = await this.resolveImageToBase64('assets/img/logo.png', 80);
-
     await Promise.all(
       allProducts.map(async (product) => {
-        const imageUrl = product.image && product.image.trim() ? product.image : 'assets/img/logo.png';
-        // Tamaño fijo 80x80 con cover crop para uniformidad en el PDF
-        const base64 = await this.resolveImageToBase64(imageUrl, 80);
+        const imageUrl = product.image?.trim() ? product.image : 'assets/img/logo.png';
+        // Mayor resolución para conservar nitidez en tarjetas grandes
+        const base64 = await this.resolveImageToBase64(imageUrl, 420);
         if (base64) {
           imagesDict[`product_${product.id}`] = base64;
         }
@@ -406,7 +415,13 @@ export class MenuPdfService {
         {
           text: 'Menú de Especialidades',
           style: 'coverSubtitle',
-          margin: [0, 0, 0, 20],
+          margin: [0, 0, 0, 12],
+        },
+
+        {
+          text: 'Tu pausa favorita, preparada al momento.',
+          style: 'coverClaim',
+          margin: [0, 0, 0, 24],
         },
 
         // ── Líneas decorativas dobles ────────────────────────────────
@@ -437,11 +452,11 @@ export class MenuPdfService {
         // ── Etiquetas descriptivas centradas ───────────────────────────
         {
           columns: [
-            { text: '✦ Ingredientes frescos', fontSize: 9, color: colors.textMuted, italics: true, alignment: 'center' },
-            { text: '✦ Preparación artesanal', fontSize: 9, color: colors.textMuted, italics: true, alignment: 'center' },
-            { text: '✦ Atmósfera acogedora', fontSize: 9, color: colors.textMuted, italics: true, alignment: 'center' },
+            { text: '✦ Ingredientes frescos', fontSize: 8.5, color: colors.textMuted, italics: true, alignment: 'center' },
+            { text: '✦ Preparación artesanal', fontSize: 8.5, color: colors.textMuted, italics: true, alignment: 'center' },
+            { text: '✦ Atmósfera acogedora', fontSize: 8.5, color: colors.textMuted, italics: true, alignment: 'center' },
           ],
-          margin: [0, 0, 0, 50],
+          margin: [0, 0, 0, 56],
         },
 
         // ── Marco decorativo inferior portada ────────────────────────
@@ -497,7 +512,8 @@ export class MenuPdfService {
         creator: 'Coffee House App',
         creationDate: new Date(),
       },      // Diccionario de imágenes: pdfmake las carga por clave, evita errores de formato
-      images: imagesDict,    };
+      images: imagesDict,
+    };
   }
 
   private buildFooterDark(
@@ -524,6 +540,12 @@ export class MenuPdfService {
               fontSize: PDF_CONFIG.footer.fontSize,
               color: colors.textMuted,
               alignment: 'left',
+            },
+            {
+              text: 'Menú actualizado y pedidos: coffeehouse.app/menu',
+              fontSize: 7.4,
+              color: colors.textMuted,
+              alignment: 'center',
             },
             {
               text: `${currentPage} / ${pageCount}`,
@@ -562,23 +584,42 @@ export class MenuPdfService {
               bold: true,
               color: '#FFFFFF',
               alignment: 'center' as const,
-              characterSpacing: 3,
-              margin: [0, 11, 0, 11],
+              characterSpacing: 2.2,
+              margin: [0, 10, 0, 10],
               fillColor: colors['primary'],
             },
           ]],
         },
         layout: 'noBorders',
-        margin: [0, 0, 0, 14],
+        margin: [0, 0, 0, PDF_CONFIG.content.rhythmUnit],
       });
 
       if (category.description) {
         content.push({
-          text: category.description,
-          fontSize: PDF_CONFIG.content.descriptionSize,
-          color: colors['textMuted'],
-          margin: [4, 0, 0, 10],
-          italics: true,
+          table: {
+            widths: ['*'],
+            body: [[
+              {
+                text: category.description,
+                fontSize: PDF_CONFIG.content.descriptionSize,
+                color: colors['textMuted'],
+                italics: true,
+                margin: [8, 5, 8, 5],
+              },
+            ]],
+          },
+          layout: {
+            fillColor: () => colors['bgGray'],
+            hLineWidth: (i: number, node: any) => (i === 0 || i === node.table.body.length ? 0.6 : 0),
+            vLineWidth: (i: number, node: any) => (i === 0 || i === node.table.widths.length ? 0.6 : 0),
+            hLineColor: () => colors['secondary'],
+            vLineColor: () => colors['secondary'],
+            paddingLeft: () => 0,
+            paddingRight: () => 0,
+            paddingTop: () => 0,
+            paddingBottom: () => 0,
+          },
+          margin: [0, 0, 0, PDF_CONFIG.content.rhythmUnit + 2],
         });
       }
 
@@ -592,29 +633,8 @@ export class MenuPdfService {
 
       category.subcategories.forEach((subcategory) => {
         if (subcategory.products.length > 0) {
-          // ── Encabezado de subcategoría con acento izquierdo ──────
           content.push(
-            {
-              columns: [
-                {
-                  canvas: [
-                    {
-                      type: 'rect' as const,
-                      x: 0, y: 0, w: 4, h: 18,
-                      r: 2,
-                      color: colors['primary'],
-                    },
-                  ],
-                  width: 12,
-                },
-                {
-                  text: subcategory.name,
-                  style: 'subcategoryTitle',
-                  margin: [4, 1, 0, 0],
-                },
-              ],
-              margin: [0, 8, 0, 10],
-            },
+            this.buildSubcategoryHeaderDark(subcategory.name, colors),
             this.buildProductsTableDark(subcategory.products, colors, imagesDict),
             { text: '', margin: [0, 0, 0, 16] }
           );
@@ -630,93 +650,291 @@ export class MenuPdfService {
     colors: PdfColors,
     imagesDict: Record<string, string> = {}
   ): any {
-    /** Construye la tarjeta individual de un producto */
     const buildCard = (product: Product | null): any => {
       if (!product) {
-        // Celda vacía transparente para completar la fila
-        return { text: '', margin: [0, 0, 0, 0] };
+        return { text: '' };
       }
 
       const imageKey = `product_${product.id}`;
       const hasImage = imageKey in imagesDict;
+      const imageHeight = PDF_CONFIG.content.productImageSize;
+      const imageWidth = PDF_CONFIG.content.productImageSize;
+      const productName = this.truncateText(product.name, 18);
+      const productDescription = this.truncateText(product.description ?? '', 24);
 
-      const imageCell: any = hasImage
-        ? { image: imageKey, width: 62, height: 62, margin: [7, 7, 6, 7] }
+      const imageBlock = hasImage
+        ? {
+            image: imageKey,
+            width: imageWidth,
+            height: imageHeight,
+            alignment: 'center' as const,
+            margin: [0, 0, 0, 0],
+            fit: [imageWidth, imageHeight],
+          }
         : {
             canvas: [
-              { type: 'rect' as const, x: 0, y: 0, w: 62, h: 62, r: 4, color: colors['bgDark'] },
-              { type: 'line' as const, x1: 20, y1: 31, x2: 42, y2: 31, lineWidth: 1.5, lineColor: colors['textMuted'] },
-              { type: 'line' as const, x1: 31, y1: 20, x2: 31, y2: 42, lineWidth: 1.5, lineColor: colors['textMuted'] },
+              { type: 'rect' as const, x: 0, y: 0, w: imageWidth, h: imageHeight, r: 8, color: colors['bgDark'] },
             ],
-            width: 62,
-            margin: [7, 7, 6, 7],
+            margin: [0, 0, 0, 0],
           };
 
-      const infoStack: any[] = [
-        {
-          text: product.name,
-          fontSize: 10,
-          bold: true,
-          color: colors['text'],
-          margin: [0, 0, 0, 3],
-        },
-      ];
+      const cornerBadge = {
+        stack: [
+          {
+            canvas: [
+              {
+                type: 'ellipse' as const,
+                x: 0,
+                y: 0,
+                r1: 7,
+                r2: 7,
+                color: '#FFFFFF',
+                lineColor: '#E0CCAE',
+                lineWidth: 0.7,
+              },
+            ],
+            relativePosition: { x: 0, y: 0 },
+          },
+          {
+            text: 'CH',
+            bold: true,
+            color: colors['primary'],
+            fontSize: 5,
+            alignment: 'center' as const,
+            margin: [0, -6, 0, 0],
+          },
+        ],
+        margin: [0, 0, 0, 0],
+      };
 
-      if (product.description) {
-        infoStack.push({
-          text: product.description,
-          fontSize: 7.5,
-          color: colors['textMuted'],
-          italics: true,
-          margin: [0, 0, 0, 5],
-          lineHeight: 1.3,
-        });
-      }
+      const dividerWithHeart = {
+        columns: [
+          {
+            canvas: [
+              {
+                type: 'line' as const,
+                x1: 0,
+                y1: 3,
+                x2: 28,
+                y2: 3,
+                lineColor: colors['secondary'],
+                lineWidth: 0.5,
+                dash: { length: 1.5 },
+              },
+            ],
+            width: '*',
+          },
+          {
+            text: '♥',
+            width: 10,
+            alignment: 'center' as const,
+            color: colors['primary'],
+            fontSize: 5.5,
+            margin: [0, -1, 0, 0],
+          },
+          {
+            canvas: [
+              {
+                type: 'line' as const,
+                x1: 0,
+                y1: 3,
+                x2: 28,
+                y2: 3,
+                lineColor: colors['secondary'],
+                lineWidth: 0.5,
+                dash: { length: 1.5 },
+              },
+            ],
+            width: '*',
+          },
+        ],
+      };
 
-      // Precio con símbolo decorativo
-      infoStack.push({
-        text: `$ ${product.price?.toLocaleString('es-CO') ?? '0'}`,
-        fontSize: 12,
+      const pricePill = {
+        text: this.formatPrice(product.price),
+        alignment: 'center' as const,
+        color: '#FFFFFF',
         bold: true,
-        color: colors['primary'],
-      });
+        fontSize: 9,
+        fillColor: colors['primary'],
+        margin: [6, 3, 6, 3],
+      };
+
+      const infoTable = {
+        table: {
+          widths: ['*'],
+          heights: [14, 6, 12, 14],
+          body: [
+            [
+              {
+                text: productName,
+                alignment: 'center' as const,
+                fontSize: 9.5,
+                bold: true,
+                color: colors['text'],
+                noWrap: true,
+              },
+            ],
+            [dividerWithHeart],
+            [
+              {
+                text: productDescription || ' ',
+                alignment: 'center' as const,
+                fontSize: 7,
+                color: colors['textMuted'],
+                italics: true,
+                lineHeight: 1.1,
+                noWrap: true,
+              },
+            ],
+            [pricePill],
+          ],
+        },
+        layout: 'noBorders' as const,
+      };
+
+      const imageAndBadge = {
+        stack: [
+          imageBlock,
+          {
+            columns: [
+              { width: '*', text: '' },
+              { width: 16, stack: [cornerBadge], margin: [0, -67, 6, 0] },
+            ],
+          },
+        ],
+      };
 
       return {
         table: {
-          widths: [76, '*'],
-          body: [[imageCell, { stack: infoStack, margin: [0, 8, 8, 6] }]],
+          widths: ['*'],
+          heights: [PDF_CONFIG.content.productCardHeight],
+          body: [[
+            {
+              stack: [
+                {
+                  table: {
+                    widths: ['*'],
+                    heights: [imageHeight + 2, 56],
+                    body: [
+                      [{ stack: [imageAndBadge], margin: [0, 0, 0, 0] }],
+                      [{ stack: [infoTable], fillColor: '#F8F3EA', margin: [0, 0, 0, 0] }],
+                    ],
+                  },
+                  layout: {
+                    hLineWidth: (i: number, node: any) => (i === 0 || i === node.table.body.length ? 0.6 : 0),
+                    vLineWidth: (i: number, node: any) => (i === 0 || i === node.table.widths.length ? 0.6 : 0),
+                    hLineColor: () => '#DCCBB2',
+                    vLineColor: () => '#DCCBB2',
+                    paddingLeft: () => 1,
+                    paddingRight: () => 1,
+                    paddingTop: () => 1,
+                    paddingBottom: () => 1,
+                  },
+                },
+              ],
+            },
+          ]],
         },
         layout: {
-          fillColor: () => colors['bgGray'],
-          hLineWidth: (i: number, node: any) =>
-            i === 0 || i === node.table.body.length ? 1 : 0,
-          vLineWidth: (i: number, node: any) =>
-            i === 0 || i === node.table.widths.length ? 1 : 0,
-          hLineColor: () => colors['primary'],
-          vLineColor: () => colors['primary'],
-          paddingLeft: () => 0,
-          paddingRight: () => 0,
-          paddingTop: () => 0,
-          paddingBottom: () => 0,
+          fillColor: () => '#F7F1E7',
+          hLineWidth: () => 0.85,
+          vLineWidth: () => 0.85,
+          hLineColor: () => '#D9C8AF',
+          vLineColor: () => '#D9C8AF',
+          paddingLeft: () => 5,
+          paddingRight: () => 5,
+          paddingTop: () => 4,
+          paddingBottom: () => 4,
         },
       };
     };
 
-    // ── Grid de 2 columnas ───────────────────────────────────────────
+    // ── Grid de 4-5 columnas ───────────────────────────────────────────
+    const COLS = 5;
     const rows: any[] = [];
-    for (let i = 0; i < products.length; i += 2) {
-      const p1 = products[i];
-      const p2 = products[i + 1] ?? null;
-      rows.push({
-        columns: [
-          { width: '*', stack: [buildCard(p1)], margin: [0, 0, 4, 0] },
-          { width: '*', stack: [buildCard(p2)], margin: [4, 0, 0, 0] },
-        ],
-        margin: [0, 0, 0, 8],
-      });
+    for (let i = 0; i < products.length; i += COLS) {
+      const rowCards = [];
+      for (let j = 0; j < COLS; j++) {
+        const product = products[i + j] ?? null;
+        rowCards.push({
+          stack: [buildCard(product)],
+          margin: [j === 0 ? 0 : 2, 0, j === COLS - 1 ? 0 : 2, 0],
+        });
+      }
+      rows.push(rowCards);
     }
 
-    return { stack: rows };
+    return {
+      table: {
+        widths: ['*', '*', '*', '*', '*'],
+        body: rows,
+        dontBreakRows: true,
+      },
+      layout: {
+        hLineWidth: () => 0,
+        vLineWidth: () => 0,
+        paddingLeft: (i: number) => (i === 0 ? 0 : 1),
+        paddingRight: (i: number, node: any) => (i === node.table.widths.length - 1 ? 0 : 1),
+        paddingTop: () => 0,
+        paddingBottom: () => 4,
+      },
+    };
+  }
+
+  private buildSubcategoryHeaderDark(subcategoryName: string, colors: PdfColors): any {
+    return {
+      columns: [
+        {
+          canvas: [
+            {
+              type: 'rect' as const,
+              x: 0,
+              y: 0,
+              w: 4,
+              h: 18,
+              r: 2,
+              color: colors['primary'],
+            },
+          ],
+          width: 12,
+        },
+        {
+          text: subcategoryName,
+          style: 'subcategoryTitle',
+          margin: [4, 1, 8, 0],
+        },
+        {
+          canvas: [
+            {
+              type: 'line' as const,
+              x1: 0,
+              y1: 10,
+              x2: 350,
+              y2: 10,
+              lineWidth: 0.4,
+              lineColor: colors['secondary'],
+            },
+          ],
+          width: '*',
+        },
+      ],
+      margin: [0, PDF_CONFIG.content.rhythmUnit, 0, PDF_CONFIG.content.rhythmUnit + 2],
+    };
+  }
+
+  private truncateText(value: string, maxChars: number): string {
+    const normalized = value.replaceAll(/\s+/g, ' ').trim();
+    if (normalized.length <= maxChars) {
+      return normalized;
+    }
+
+    return `${normalized.slice(0, maxChars - 3).trimEnd()}...`;
+  }
+
+  private formatPrice(price?: number): string {
+    const safePrice = Number.isFinite(price) ? Number(price) : 0;
+    return `$ ${safePrice.toLocaleString('es-CO')}`;
   }
 
   private buildStylesDark(colors: PdfColors): Record<string, object> {
@@ -729,9 +947,11 @@ export class MenuPdfService {
         alignment: 'center',
       },
       subcategoryTitle: {
-        fontSize: 11,
+        fontSize: 10.5,
         bold: true,
         color: colors['primary'],
+        characterSpacing: 1.1,
+        uppercase: true,
       },
       productName: {
         fontSize: 10,
@@ -761,6 +981,12 @@ export class MenuPdfService {
         italics: true,
         color: colors['primary'],
         alignment: 'center',
+      },
+      coverClaim: {
+        fontSize: PDF_CONFIG.portada.claimSize,
+        color: colors['textMuted'],
+        alignment: 'center',
+        characterSpacing: 0.6,
       },
     };
   }

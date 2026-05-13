@@ -1,15 +1,15 @@
-import { Component, Input, ChangeDetectionStrategy, inject, input, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, input, computed } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
 import { ProductModalService } from '../../core/services/product-modal.service';
 import { Product } from '../../features/menu/models/product.model';
-import { CommonModule } from '@angular/common';
 import { CartService } from '../../core/services/cart-service';
 import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-product-card',
   standalone: true,
+  imports: [DecimalPipe],
   templateUrl: './product-card.component.html',
-  imports: [CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProductCardComponent {

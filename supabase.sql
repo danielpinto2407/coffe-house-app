@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS categories (
   id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
   name VARCHAR(100) NOT NULL UNIQUE,
   description TEXT,
+  image VARCHAR(500),
   "order" INT NOT NULL DEFAULT 999,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -159,6 +160,12 @@ INSERT INTO product_additions (product_id, addition_id, required, max_selections
   ((SELECT id FROM products WHERE name = 'Cappuccino'), (SELECT id FROM additions WHERE name = 'Espuma Extra'), false, 1, 1),
   ((SELECT id FROM products WHERE name = 'Cappuccino'), (SELECT id FROM additions WHERE name = 'Doble Shot'), false, 1, 2)
 ON CONFLICT DO NOTHING;
+
+-- ================================================
+-- MIGRACIÓN: Agregar columna image a categories (si no existe)
+-- ================================================
+-- Ejecuta esto si tu tabla categories ya existe pero sin la columna image
+ALTER TABLE categories ADD COLUMN IF NOT EXISTS image VARCHAR(500);
 
 -- ================================================
 -- NOTAS IMPORTANTES:

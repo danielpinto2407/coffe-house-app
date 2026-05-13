@@ -4,13 +4,14 @@ import { debounceTime, Subject, switchMap, tap, shareReplay } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ProductCardComponent } from '../../../shared/product-card/product-card.component';
 import { SearchBarComponent } from '../../../shared/components/search-bar/search-bar.component';
+import { CategoryCardComponent } from '../components/category-card/category-card.component';
 import { MenuApiService } from '../services/menu-api.service';
 import { MenuStructure } from '../models/menu-structure.model';
 
 @Component({
   selector: 'app-menu',
   standalone: true,
-  imports: [CommonModule, ProductCardComponent, SearchBarComponent],
+  imports: [CommonModule, ProductCardComponent, SearchBarComponent, CategoryCardComponent],
   templateUrl: './menu.page.html',
   styleUrls: ['./menu.page.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -27,9 +28,6 @@ export class MenuPage implements OnInit, AfterViewInit {
   protected readonly selectedCategoryId = signal<number | null>(null);
   protected readonly searchTerm = signal<string>('');
 
-  // ✅ COMPUTED: Menú filtrado calculado reactivamente
-  protected readonly menu = computed(() => this.fullMenu());
-
   // ✅ COMPUTED: ¿Estamos en modo búsqueda?
   protected readonly isSearching = computed(() => this.searchTerm().trim().length > 0);
 
@@ -42,7 +40,7 @@ export class MenuPage implements OnInit, AfterViewInit {
     }));
   });
 
-  // ✅ COMPUTED: Subcategorías y productos de la categoría seleccionada
+  // ✅ COMPUTED: Subcategorías y productos de la categoría seleccionada (para DESKTOP)
   protected readonly selectedCategoryData = computed(() => {
     const categoryId = this.selectedCategoryId();
     if (categoryId === null) return null;
@@ -55,6 +53,9 @@ export class MenuPage implements OnInit, AfterViewInit {
   protected readonly allSearchProducts = computed(() => {
     const products: any[] = [];
     this.fullMenu().forEach(category => {
+      if (category.products?.length) {
+        products.push(...category.products);
+      }
       category.subcategories.forEach(sub => {
         products.push(...sub.products);
       });
@@ -67,8 +68,6 @@ export class MenuPage implements OnInit, AfterViewInit {
 
   /**
    * ✅ Observable: Emisión del menú filtrado/completo reactivamente
-   * Usa switchMap para cambiar entre búsquedas y cargar menú completo
-   * SharedReplay para cachear último resultado
    */
   private readonly filteredMenu$ = this.searchSubject.pipe(
     debounceTime(300),
@@ -82,52 +81,35 @@ export class MenuPage implements OnInit, AfterViewInit {
     tap((menu: MenuStructure[]) => {
       this.fullMenu.set(menu);
       this.isLoading.set(false);
+      // Seleccionar primera categoría si no hay selección
+      if (menu.length > 0 && this.selectedCategoryId() === null) {
+        this.selectedCategoryId.set(menu[0].id);
+      }
     }),
     shareReplay(1),
     takeUntilDestroyed(this.destroyRef)
   );
 
   constructor() {
-    // ✅ Suscribirse al observable para inicializar el flujo reactivo
+    // ✅ Suscribirse al observable
     this.filteredMenu$.subscribe();
   }
 
   ngOnInit(): void {
-    // ✅ Emitir un término vacío para cargar el menú completo inicial
-    // Esto evita una doble llamada API (vs hacerlo en ngOnInit)
+    // ✅ Cargar menú completo inicial
     this.searchSubject.next('');
-
-    // ✅ Al cargar el menú, seleccionar la primera categoría
-    this.filteredMenu$
-      .pipe(
-        tap((menu: MenuStructure[]) => {
-          if (menu.length > 0 && this.selectedCategoryId() === null) {
-            this.selectedCategoryId.set(menu[0].id);
-          }
-        }),
-        takeUntilDestroyed(this.destroyRef)
-      )
-      .subscribe();
   }
 
   ngAfterViewInit(): void {
     // ✅ Scroll automático cuando cambia la categoría seleccionada
-    // Esperar a que el template se renderice antes de hacer scroll
     setTimeout(() => this.scrollToActivePill(), 0);
   }
 
-  /**
-   * ✅ Cambiar categoría seleccionada y scroll automático
-   */
   onSelectCategory(categoryId: number): void {
     this.selectedCategoryId.set(categoryId);
-    // ✅ Realizar scroll suave al pill activo en el siguiente ciclo
     setTimeout(() => this.scrollToActivePill(), 0);
   }
 
-  /**
-   * ✅ Scroll automático suave al pill activo
-   */
   private scrollToActivePill(): void {
     if (!this.categoryTabs) return;
 
@@ -138,8 +120,6 @@ export class MenuPage implements OnInit, AfterViewInit {
       const buttonLeft = activeButton.offsetLeft;
       const buttonWidth = activeButton.offsetWidth;
       const containerWidth = container.offsetWidth;
-
-      // ✅ Calcular scroll necesario para centrar el botón activo
       const scrollPos = buttonLeft - (containerWidth / 2) + (buttonWidth / 2);
 
       container.scrollTo({
@@ -149,10 +129,6 @@ export class MenuPage implements OnInit, AfterViewInit {
     }
   }
 
-  /**
-   * ✅ Listener para eventos de búsqueda del SearchBar
-   * Usa Subject + debounce para no filtrar a cada keystroke
-   */
   onSearch(term: string): void {
     this.searchTerm.set(term);
     this.searchSubject.next(term);

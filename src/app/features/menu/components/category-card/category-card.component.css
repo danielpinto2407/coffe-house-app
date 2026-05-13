@@ -1,0 +1,30 @@
+:host {
+  display: block;
+}
+
+button {
+  cursor: pointer;
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Mobile: 2 columnas a partir de cierto punto */
+@media (min-width: 480px) {
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Desktop: más columnas */
+@media (min-width: 768px) {
+  .product-grid {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1.5rem;
+  }
+}
