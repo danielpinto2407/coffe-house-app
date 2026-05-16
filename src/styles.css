@@ -4,7 +4,7 @@
 
 /* Variables CSS por defecto - Tema Clásico (sincronizado con theme.config.ts) */
 :root {
-  --header-height: 80px;
+  --header-height: 52px;  /* solo nav bar */
   --color-primary: #5C2E10;
   --color-secondary: #F5E6CC;
   --color-tertiary: #F5E6CC;
@@ -19,6 +19,12 @@
   --color-warning: #C8780A;
   --color-error: #A83228;
   --color-hover: #EDD9A3;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --header-height: 52px; /* solo nav bar, igual en desktop */
+  }
 }
 
 /* Contraste para modo oscuro: asegúrate que las cards y textos usen bien las variables */

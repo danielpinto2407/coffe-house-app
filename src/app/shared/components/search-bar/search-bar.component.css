@@ -1,1 +1,8 @@
 /* Estilos minimales del buscador */
+.search-input {
+	color: var(--color-primary);
+}
+
+.search-input::placeholder {
+	color: color-mix(in srgb, var(--color-primary) 70%, transparent);
+}
