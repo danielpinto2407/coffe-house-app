@@ -8,6 +8,7 @@ import { CategoryCardComponent } from '../components/category-card/category-card
 import { MenuApiService } from '../services/menu-api.service';
 import { ProductService } from '../services/product.service';
 import { MenuStructure } from '../models/menu-structure.model';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-menu',
@@ -21,6 +22,7 @@ export class MenuPage implements OnInit, AfterViewInit {
   private readonly menuApi = inject(MenuApiService);
   private readonly productService = inject(ProductService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly preloadedImages = new Set<string>();
 
   @ViewChild('categoryTabs') categoryTabs?: ElementRef<HTMLDivElement>;
 
@@ -86,6 +88,10 @@ export class MenuPage implements OnInit, AfterViewInit {
     tap((menu: MenuStructure[]) => {
       this.fullMenu.set(menu);
       this.isLoading.set(false);
+
+      // Preload de imagenes para evitar delay al expandir categorias.
+      this.preloadMenuImages(menu);
+
       // Seleccionar primera categoría si no hay selección
       if (menu.length > 0 && this.selectedCategoryId() === null) {
         this.selectedCategoryId.set(menu[0].id);
@@ -145,6 +151,62 @@ export class MenuPage implements OnInit, AfterViewInit {
   onSearch(term: string): void {
     this.searchTerm.set(term);
     this.searchSubject.next(term);
+  }
+
+  private preloadMenuImages(menu: MenuStructure[]): void {
+    if (globalThis.window === undefined) {
+      return;
+    }
+
+    const imageUrls = new Set<string>();
+
+    for (const category of menu) {
+      for (const product of category.products ?? []) {
+        imageUrls.add(this.resolveProductImageUrl(product.image));
+      }
+
+      for (const subcategory of category.subcategories ?? []) {
+        for (const product of subcategory.products ?? []) {
+          imageUrls.add(this.resolveProductImageUrl(product.image));
+        }
+      }
+    }
+
+    const urlsToPreload = Array.from(imageUrls).filter(url => !this.preloadedImages.has(url));
+    if (urlsToPreload.length === 0) {
+      return;
+    }
+
+    const schedulePreload = () => {
+      for (const url of urlsToPreload) {
+        this.preloadedImages.add(url);
+        const img = new Image();
+        img.decoding = 'async';
+        img.src = url;
+      }
+    };
+
+    const win = globalThis.window as Window & {
+      requestIdleCallback?: (callback: () => void) => number;
+    };
+
+    if (typeof win.requestIdleCallback === 'function') {
+      win.requestIdleCallback(schedulePreload);
+    } else {
+      setTimeout(schedulePreload, 0);
+    }
+  }
+
+  private resolveProductImageUrl(image: string | undefined): string {
+    if (!image) {
+      return 'assets/img/logo.png';
+    }
+
+    if (image.startsWith('http')) {
+      return image;
+    }
+
+    return `${environment.supabase.url}/storage/v1/object/public/menu/products/${image}`;
   }
 }
 
