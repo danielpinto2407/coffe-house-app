@@ -1,9 +1,5 @@
 /* ✅ CONTENEDOR FLOTANTE: tabs + buscador */
 .floating-sticky-container {
-  position: fixed;
-  top: var(--header-height, 52px);
-  left: 0;
-  right: 0;
   z-index: 20;
   background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-primary) 100%);
   display: flex;
@@ -13,13 +9,13 @@
 /* ✅ Buscador dentro del contenedor flotante */
 .search-in-container {
   padding: 0;
-  background: var(--color-secondary);
+  background: var(--color-surface);
 }
 
 /* ✅ DESKTOP: TABS */
 .sticky-categories-desktop {
   display: block;
-  background: var(--color-secondary);
+  background: var(--color-surface);
   padding: 10px 0 0;
   margin: 0;
   box-shadow: none;
@@ -47,12 +43,8 @@
 /* ✅ CONTENEDOR PRINCIPAL DESKTOP */
 .menu-with-fixed-search-desktop {
   display: none;
-  position: fixed;
-  top: calc(var(--header-height, 30px) + 70px); /* header + tabs + buscador real (más compacto) */
-  left: 0;
-  right: 0;
-  bottom: 0;
-  overflow-y: auto;
+  background: var(--color-surface);
+  overflow-y: visible;
   overflow-x: hidden;
   padding-top: 0;
   padding-left: 0;
@@ -68,17 +60,13 @@
 /* ✅ CONTENEDOR PRINCIPAL MÓVIL */
 .menu-with-fixed-search-mobile {
   display: block;
-  position: fixed;
-  top: calc(var(--header-height, 52px) + 42px); /* header + buscador móvil compacto */
-  left: 0;
-  right: 0;
-  bottom: 0;
-  overflow-y: scroll;
+  overflow-y: visible;
   overflow-x: clip;
   padding: 0;
   margin: 0;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  background: var(--color-surface);
 }
 
 .menu-with-fixed-search-mobile::-webkit-scrollbar {
@@ -98,7 +86,7 @@
   gap: 0.5rem;
   width: 100%;
   padding: 0.5rem 0;
-  background: var(--color-secondary);
+  background: var(--color-surface);
 }
 
 @media (max-width: 767px) {
@@ -150,8 +138,8 @@
   background: linear-gradient(
     to right,
     transparent 0%,
-    color-mix(in srgb, var(--color-secondary) 55%, transparent) 40%,
-    var(--color-secondary) 100%
+    color-mix(in srgb, var(--color-surface) 55%, transparent) 40%,
+    var(--color-surface) 100%
   );
   pointer-events: none;
   opacity: 0.8;
