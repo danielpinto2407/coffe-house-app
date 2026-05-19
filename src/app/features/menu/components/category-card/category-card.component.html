@@ -2,7 +2,7 @@
 <button
   type="button"
   (click)="toggleExpand()"
-  class="category-button w-full relative h-28 md:h-36 overflow-hidden flex flex-col justify-end"
+  class="category-button w-full relative overflow-hidden"
 >
   <!-- Imagen de fondo -->
   @if (categoryImage()) {
@@ -17,22 +17,21 @@
   <div class="category-overlay absolute inset-0"></div>
 
   <!-- Contenido del header -->
-  <div class="category-content relative z-10 p-4">
-    <div class="flex items-center justify-between gap-3">
-      <div class="flex-1 min-w-0">
-        <h3 class="category-title">
-          {{ category().name }}
-        </h3>
-        <p class="category-description line-clamp-1">
-          {{ category().description }}
-        </p>
-      </div>
-      <!-- Icono de expand/collapse -->
-      <div class="flex-shrink-0">
-        <span class="material-icons expand-icon" [class.rotated]="isExpanded()">
-          expand_more
-        </span>
-      </div>
+  <div class="category-content relative z-10">
+    <div class="category-text">
+      <h3 class="category-title">
+        {{ category().name }}
+      </h3>
+      <p class="category-description line-clamp-1">
+        {{ category().description }}
+      </p>
+    </div>
+
+    <!-- Icono de expand/collapse -->
+    <div class="expand-indicator" aria-hidden="true">
+      <span class="material-icons expand-icon" [class.rotated]="isExpanded()">
+        expand_more
+      </span>
     </div>
   </div>
 </button>

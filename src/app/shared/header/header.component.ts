@@ -12,6 +12,7 @@ import { AuthService } from '../../core/services/auth.service';
   standalone: true,
   imports: [CommonModule, RouterLink, MobileMenuComponent],
   templateUrl: './header.component.html',
+  styleUrls: ['./header.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HeaderComponent {

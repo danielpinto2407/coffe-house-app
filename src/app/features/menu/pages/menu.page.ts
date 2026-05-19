@@ -31,6 +31,7 @@ export class MenuPage implements OnInit, AfterViewInit {
   protected readonly isLoading = signal(true);
   protected readonly selectedCategoryId = signal<number | null>(null);
   protected readonly searchTerm = signal<string>('');
+  protected readonly greetingMessage = this.getGreetingMessage();
 
   // ✅ SIMPLE: Mostrar notificación cuando hay cambios
   protected readonly showUpdateNotification = signal(false);
@@ -151,6 +152,20 @@ export class MenuPage implements OnInit, AfterViewInit {
   onSearch(term: string): void {
     this.searchTerm.set(term);
     this.searchSubject.next(term);
+  }
+
+  private getGreetingMessage(): string {
+    const currentHour = new Date().getHours();
+
+    if (currentHour < 12) {
+      return 'Buenos días ☀️';
+    }
+
+    if (currentHour < 19) {
+      return 'Buenas tardes ☕';
+    }
+
+    return 'Buenas noches 🌙';
   }
 
   private preloadMenuImages(menu: MenuStructure[]): void {

@@ -6,6 +6,30 @@
   flex-direction: column;
 }
 
+.menu-greeting {
+  background: var(--color-surface);
+  color: var(--color-primary);
+  margin-top: -0.15rem;
+  padding: 0.35rem 1rem 0.3rem;
+  text-align: center;
+}
+
+.menu-greeting-line {
+  margin: 0;
+  line-height: 1.2;
+}
+
+.menu-greeting-line:first-child {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.menu-greeting-line:last-child {
+  margin-top: 0.1rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
 /* ✅ Buscador dentro del contenedor flotante */
 .search-in-container {
   padding: 0;
@@ -85,13 +109,13 @@
   flex-direction: column;
   gap: 0.5rem;
   width: 100%;
-  padding: 0.5rem 0;
+  padding: 0.9rem 0;
   background: var(--color-surface);
 }
 
 @media (max-width: 767px) {
   .categories-list {
-    padding-top: 0;
+    padding-top: 0.4rem;
   }
 }
 

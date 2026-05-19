@@ -1,8 +1,16 @@
 /* Estilos minimales del buscador */
 .search-input {
 	color: var(--color-primary);
+	background: #FAF3E0;
+	border: 1.5px solid #C8A96E;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
 .search-input::placeholder {
-	color: color-mix(in srgb, var(--color-primary) 70%, transparent);
+	color: #A0856C;
+	opacity: 1;
+}
+
+.search-input:focus {
+	border-color: #B8860B;
 }

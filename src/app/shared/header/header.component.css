@@ -4,6 +4,35 @@ header {
   z-index: 40;
 }
 
+.header-balance-space,
+.header-actions {
+  min-width: 84px;
+}
+
+.header-logo-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-logo-image {
+  height: 132px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.18));
+}
+
+@media (min-width: 768px) {
+  .header-balance-space,
+  .header-actions {
+    min-width: 120px;
+  }
+
+  .header-logo-image {
+    height: 82px;
+  }
+}
+
 header button {
   transition: all 0.2s ease;
   display: inline-flex;

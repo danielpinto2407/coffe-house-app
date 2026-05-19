@@ -1,6 +1,11 @@
 <!-- ✅ CONTENEDOR FLOTANTE: Tabs + Buscador -->
 <div class="floating-sticky-container">
 
+  <div class="menu-greeting" aria-live="polite">
+    <p class="menu-greeting-line">{{ greetingMessage }}</p>
+    <p class="menu-greeting-line">¿Qué vas a pedir hoy?</p>
+  </div>
+
   <!-- ✅ Notificación simple de actualización -->
   @if (showUpdateNotification()) {
     <div class="update-notification" role="status" aria-live="polite">
