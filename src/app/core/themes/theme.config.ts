@@ -42,7 +42,7 @@ export const THEMES: Record<string, ThemeConfig> = {
       // Blanco cálido con toque crema
       background: '#EDD9A333',
       backgroundLight: '#F5E6CC',
-      surface: '#FFFFFF',
+      surface: '#F8F0E0',
       border: '#C8A96E',
       success: '#3A6B35',
       warning: '#C8780A',

@@ -13,7 +13,7 @@
   --color-text-secondary: #7A4B2A;
   --color-background: #EDD9A333;
   --color-background-light: #F5E6CC;
-  --color-surface: #FFFFFF;
+  --color-surface: #F8F0E0;
   --color-border: #C8A96E;
   --color-success: #3A6B35;
   --color-warning: #C8780A;
@@ -29,13 +29,13 @@
 
 /* Contraste para modo oscuro: asegúrate que las cards y textos usen bien las variables */
 body {
-  background: var(--color-background);
+  background: var(--color-secondary);
   color: var(--color-text);
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 body.dark {
-  background: var(--color-background);
+  background: var(--color-secondary);
   color: var(--color-text);
 }
 

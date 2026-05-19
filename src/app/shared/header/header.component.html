@@ -1,25 +1,24 @@
 <header class="w-full" style="background: var(--color-surface); box-shadow: 0 2px 6px rgba(0,0,0,0.3);">
-  <div class="px-4 py-2 flex items-center justify-between gap-3">
-    
-    <!-- LOGO + INFORMACIÓN (Izquierda) -->
-    <a [routerLink]="['/menu']" class="flex items-center gap-2 flex-shrink-0 hover:opacity-80 transition-opacity cursor-pointer min-w-0">
-      <div class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center overflow-hidden flex-shrink-0">
-        <img src="assets/img/logo.png" 
-             alt="Coffee House - Logo"
-             loading="lazy"
-             class="w-full h-full object-cover"/>
-      </div>
+  <div class="px-4 py-1.5 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+    <div class="header-balance-space" aria-hidden="true"></div>
 
-      <div class="min-w-0">
-        <h1 class="font-bold truncate" 
-          style="font-family: 'Georgia', serif; margin: 0; font-size: 1rem; color: var(--color-primary);">
-          Coffee House
-        </h1>
-      </div>
+    <!-- LOGO CENTRADO -->
+    <a
+      [routerLink]="['/menu']"
+      class="header-logo-link hover:opacity-85 transition-opacity cursor-pointer"
+      aria-label="Ir al menú principal"
+      title="Coffee House"
+    >
+      <img
+        src="assets/img/logo.png"
+        alt="Coffee House"
+        loading="lazy"
+        class="header-logo-image"
+      />
     </a>
 
     <!-- ACCIONES -->
-    <div class="flex items-center gap-1">
+    <div class="header-actions flex items-center justify-end gap-1">
 
       <!-- SELECTOR DE TEMAS (Desktop) -->
       <div class="hidden md:block relative">
