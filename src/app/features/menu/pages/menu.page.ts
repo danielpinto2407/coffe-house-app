@@ -1,4 +1,5 @@
 import { Component, OnInit, signal, computed, inject, DestroyRef, ChangeDetectionStrategy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { ThemeService } from '../../../core/services/theme.service';
 import { CommonModule } from '@angular/common';
 import { debounceTime, Subject, switchMap, tap, shareReplay } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -19,6 +20,7 @@ import { environment } from '../../../../environments/environment';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MenuPage implements OnInit, AfterViewInit {
+  private readonly themeService = inject(ThemeService);
   private readonly menuApi = inject(MenuApiService);
   private readonly productService = inject(ProductService);
   private readonly destroyRef = inject(DestroyRef);
@@ -31,7 +33,7 @@ export class MenuPage implements OnInit, AfterViewInit {
   protected readonly isLoading = signal(true);
   protected readonly selectedCategoryId = signal<number | null>(null);
   protected readonly searchTerm = signal<string>('');
-  protected readonly greetingMessage = this.getGreetingMessage();
+  protected readonly greetingMessage = this.getGreetingMessageAndSetTheme();
 
   // ✅ SIMPLE: Mostrar notificación cuando hay cambios
   protected readonly showUpdateNotification = signal(false);
@@ -154,17 +156,20 @@ export class MenuPage implements OnInit, AfterViewInit {
     this.searchSubject.next(term);
   }
 
-  private getGreetingMessage(): string {
+  /**
+   * Devuelve el saludo según la hora y aplica el tema correspondiente
+   */
+  private getGreetingMessageAndSetTheme(): string {
     const currentHour = new Date().getHours();
-
     if (currentHour < 12) {
+      this.themeService.setTheme('manana');
       return 'Buenos días ☀️';
     }
-
     if (currentHour < 19) {
+      this.themeService.setTheme('tarde');
       return 'Buenas tardes ☕';
     }
-
+    this.themeService.setTheme('oscuro');
     return 'Buenas noches 🌙';
   }
 
