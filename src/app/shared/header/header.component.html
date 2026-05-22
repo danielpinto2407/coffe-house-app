@@ -50,7 +50,9 @@
               'text-text bg-background-light hover:bg-hover': currentThemeId() !== theme.id
             }"
             class="w-full text-left px-3 py-3 rounded-lg mb-2 last:mb-0 transition-all duration-150 flex items-center gap-2.5">
-            <span class="material-icons text-base" aria-hidden="true">{{ theme.id === 'classic' ? 'light_mode' : 'dark_mode' }}</span>
+            <span class="material-icons text-base" aria-hidden="true">
+              {{ theme.id === 'manana' ? 'light_mode' : (theme.id === 'tarde' ? 'wb_twilight' : 'dark_mode') }}
+            </span>
             <span class="font-medium">{{ theme.name }}</span>
           </button>
         </div>

@@ -24,9 +24,9 @@ export interface ThemeConfig {
 }
 
 export const THEMES: Record<string, ThemeConfig> = {
-  classic: {
-    id: 'classic',
-    name: 'Clásico',
+  manana: {
+    id: 'manana',
+    name: 'Mañana',
     colors: {
       // Marrón chocolatero profundo del logo
       primary: '#5C2E10',
@@ -40,7 +40,7 @@ export const THEMES: Record<string, ThemeConfig> = {
       text: '#2C1408',
       textSecondary: '#7A4B2A',
       // Blanco cálido con toque crema
-      background: '#EDD9A333',
+      background: '#5C2E10',
       backgroundLight: '#F5E6CC',
       surface: '#F8F0E0',
       border: '#C8A96E',
@@ -55,9 +55,9 @@ export const THEMES: Record<string, ThemeConfig> = {
     },
   },
 
-  dark: {
-    id: 'dark',
-    name: 'Oscuro',
+  oscuro: {
+    id: 'oscuro',
+    name: 'Noche',
     colors: {
       // Dorado cálido brillante sobre fondo oscuro
       primary: '#D4A56A',
@@ -82,9 +82,9 @@ export const THEMES: Record<string, ThemeConfig> = {
     },
   },
 
-  botanico: {
-    id: 'botanico',
-    name: 'Botánico',
+  tarde: {
+    id: 'tarde',
+    name: 'Tarde',
     colors: {
       // Verde musgo profundo de las hojas del logo
       primary: '#2D3A22',
@@ -98,7 +98,7 @@ export const THEMES: Record<string, ThemeConfig> = {
       text: '#1E2A16',
       textSecondary: '#5A7044',
       // Pergamino envejecido — el fondo del medallón
-      background: '#F4F0E6',
+      background: '#2D3A22',
       backgroundLight: '#E8E0C8',
       surface: '#FDFBF5',
       border: '#8FA67A',
@@ -114,12 +114,14 @@ export const THEMES: Record<string, ThemeConfig> = {
   },
 };
 
-export const DEFAULT_THEME = 'classic';
+
+export const DEFAULT_THEME = 'manana';
 
 export function getTheme(themeId: string): ThemeConfig {
   return THEMES[themeId] || THEMES[DEFAULT_THEME];
 }
 
 export function getAllThemes(): ThemeConfig[] {
-  return Object.values(THEMES);
+  // Ordenar: mañana, tarde, noche
+  return ['manana', 'tarde', 'oscuro'].map(id => THEMES[id]);
 }
