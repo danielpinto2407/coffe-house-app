@@ -1,6 +1,9 @@
 import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CartService } from '../../core/services/cart-service';
+import { OrderMessageService } from '../../core/services/order-message.service';
+import { WHATSAPP_ORDER_PHONE } from '../../core/constants/whatsapp.constants';
+import { Order } from '@features/orders/models/order.model';
 
 @Component({
   selector: 'app-cart-overlay',
@@ -12,6 +15,8 @@ import { CartService } from '../../core/services/cart-service';
 })
 export class CartOverlayComponent {
   protected readonly cart = inject(CartService);
+
+  protected readonly orderMessage = inject(OrderMessageService);
 
   onRemove(productId: number): void {
     this.cart.removeProduct(productId);
@@ -25,22 +30,41 @@ export class CartOverlayComponent {
     this.cart.increase(productId, 1);
   }
 
+  /**
+   * Envía el pedido por WhatsApp usando el OrderMessageService
+   * El usuario completa nombre y observaciones en WhatsApp antes de enviar
+   */
   onCheckout(): void {
-    const payload = this.cart.buildCheckoutPayload();
-    
-    // ✅ Validar que el carrito no esté vacío
-    if (!payload || payload.length === 0) {
+    const items = this.cart.getItemsSnapshot();
+    if (!items || items.length === 0) {
       return;
     }
 
-    const items = this.cart.getItemsSnapshot();
-    const total = items.reduce((acc, it) => acc + (Number(it.product.price || 0) * it.qty), 0);
+    // Calcular total usando lógica del CartService
+    const total = items.reduce((acc, it) => {
+      const itemPrice = it.finalPrice ?? (Number(it.product.price || 0));
+      return acc + (itemPrice * it.qty);
+    }, 0);
 
-    // ✅ TODO: Integrar con servicio de pagos
-    // 1. Validar items con ProductValidator
-    // 2. Enviar a backend para procesar pago
-    // 3. Mostrar loading state
-    // 4. Manejar respuesta y errores
-    // 5. Limpiar carrito después de éxito
+    // Crear Order temporal (sin id ni fecha, solo para mensaje)
+    const order: Order = {
+      id: '',
+      items,
+      total,
+      createdAt: new Date(),
+    };
+
+    // Construir mensaje amigable
+    const message = this.orderMessage.buildWhatsAppMessage(order);
+
+    // Codificar mensaje para URL
+    const encodedMsg = encodeURIComponent(message);
+    const phone = WHATSAPP_ORDER_PHONE;
+    const url = `https://wa.me/${phone}?text=${encodedMsg}`;
+
+    // SSR-safe: solo abrir WhatsApp si window está disponible
+    if (globalThis.window !== undefined) {
+      globalThis.window.open(url, '_blank');
+    }
   }
 }
