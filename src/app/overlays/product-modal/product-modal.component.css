@@ -10,6 +10,11 @@
   max-height: 90vh;
   overflow-y: auto;
   animation: slideUp 0.3s ease-in-out;
+  -ms-overflow-style: none; /* IE/Edge */
+  scrollbar-width: none;    /* Firefox */
+}
+.modal-content::-webkit-scrollbar {
+  display: none;
 }
 
 /* Animaciones suaves */

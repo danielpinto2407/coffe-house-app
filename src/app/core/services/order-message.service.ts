@@ -62,8 +62,12 @@ export class OrderMessageService {
     message += `${this.separator}\n`;
     message += `${this.totalEmoji} *Total Pedido: $${order.total}*\n`;
     message += `${this.separator}\n`;
-    message += `🧑‍💼 *Nombre:* (escribe aquí tu nombre)\n`;
-    message += `📝 *Observaciones:* (agrega aquí tus observaciones)\n`;
+    if (order.customerName) {
+      message += `🧑‍💼 *Nombre:* ${order.customerName}\n`;
+    }
+    if (order.observation) {
+      message += `📝 *Observaciones:* ${order.observation}\n`;
+    }
     message += `\n🙏 ¡Gracias por tu pedido! 🙏`;
     return message;
   }

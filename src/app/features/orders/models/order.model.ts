@@ -6,5 +6,6 @@ export interface Order {
   items: CartItem[];
   total: number;
   createdAt: Date;
-  // Puedes agregar más campos según necesidades futuras
+  customerName?: string;
+  observation?: string;
 }

@@ -1,5 +1,7 @@
 /* ✅ CONTENEDOR FLOTANTE: tabs + buscador */
 .floating-sticky-container {
+  position: sticky;
+  top: var(--menu-header-offset, 0px);
   z-index: 20;
   background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-primary) 100%);
   display: flex;
@@ -84,12 +86,8 @@
 /* ✅ CONTENEDOR PRINCIPAL MÓVIL */
 .menu-with-fixed-search-mobile {
   display: block;
-  overflow-y: visible;
-  overflow-x: clip;
   padding: 0;
   margin: 0;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
   background: var(--color-surface);
 }
 
@@ -104,6 +102,7 @@
 }
 
 /* ✅ Lista de categorías (accordeons) */
+
 .categories-list {
   display: flex;
   flex-direction: column;
@@ -111,6 +110,19 @@
   width: 100%;
   padding: 0.9rem 0;
   background: var(--color-surface);
+  overflow: visible;
+}
+
+@media (min-width: 768px) {
+  .categories-list {
+    max-height: 60vh;
+    overflow-y: auto;
+    -ms-overflow-style: none; /* IE/Edge */
+    scrollbar-width: none;    /* Firefox */
+  }
+  .categories-list::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @media (max-width: 767px) {
@@ -212,10 +224,13 @@
 }
 
 /* ✅ Grid de productos unificado: 1 col en móvil, auto-fit en desktop */
+
 .product-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 0.75rem;
+  max-height: 45vh;
+  overflow-y: auto;
 }
 
 @media (min-width: 768px) {
