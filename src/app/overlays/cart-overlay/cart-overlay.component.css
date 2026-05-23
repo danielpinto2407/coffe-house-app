@@ -1,3 +1,22 @@
+/* Contraste para inputs del formulario del carrito */
+.cart-overlay-form-label,
+.cart-overlay-form-input,
+.cart-overlay-form-textarea {
+	color: var(--color-text) !important;
+	background: var(--color-background) !important;
+}
+
+.cart-overlay-form-input,
+.cart-overlay-form-textarea {
+	border: 1px solid var(--color-border);
+}
+
+.cart-overlay-form-input:focus,
+.cart-overlay-form-textarea:focus {
+	outline: none;
+	border-color: var(--color-primary);
+	box-shadow: 0 0 0 2px var(--color-primary)33;
+}
 /* Scroll solo en el área de productos, no en el modal completo */
 .cart-items-scroll {
 	max-height: 40vh;

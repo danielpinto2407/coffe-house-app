@@ -122,11 +122,11 @@
 
     <!-- Campos de nombre y observación -->
     <div class="flex flex-col gap-3 mb-4">
-      <label class="text-sm font-medium text-text" for="customerName">Nombre <span class="text-red-500">*</span></label>
+      <label class="text-sm font-medium cart-overlay-form-label" for="customerName">Nombre <span class="text-red-500">*</span></label>
       <input
         id="customerName"
         type="text"
-        class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary text-text bg-background"
+        class="w-full px-3 py-2 rounded-lg cart-overlay-form-input"
         [(ngModel)]="customerName"
         [class.border-red-500]="nameTouched && !customerName.trim()"
         (blur)="nameTouched = true"
@@ -136,10 +136,10 @@
       />
       <div *ngIf="nameTouched && !customerName.trim()" class="text-xs text-red-500">El nombre es obligatorio</div>
 
-      <label class="text-sm font-medium text-text" for="observation">Observación (opcional)</label>
+      <label class="text-sm font-medium cart-overlay-form-label" for="observation">Observación (opcional)</label>
       <textarea
         id="observation"
-        class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary text-text bg-background"
+        class="w-full px-3 py-2 rounded-lg cart-overlay-form-textarea"
         [(ngModel)]="observation"
         maxlength="120"
         rows="2"
