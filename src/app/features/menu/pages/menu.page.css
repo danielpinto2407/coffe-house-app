@@ -1,3 +1,15 @@
+/* ==== FIX: Forzar scroll solo en productos/categorías, nunca en el contenedor global ==== */
+.menu-with-fixed-search-desktop,
+.floating-sticky-container {
+  overflow-y: visible !important;
+  height: auto !important;
+  max-height: none !important;
+}
+
+body, html, #root, app-root {
+  overflow-y: visible !important;
+  height: auto !important;
+}
 /* ✅ CONTENEDOR FLOTANTE: tabs + buscador */
 .floating-sticky-container {
   position: sticky;
