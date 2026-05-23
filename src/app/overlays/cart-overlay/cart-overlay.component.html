@@ -13,8 +13,9 @@
 <!-- OVERLAY PANEL -->
 <div 
   *ngIf="cart.open$ | async"
-  class="fixed right-0 top-0 h-full w-80 shadow-2xl z-50 p-5
-         flex flex-col transition-transform transform border-l bg-primary text-white"
+    class="fixed right-0 top-0 h-full w-80 shadow-2xl z-50 p-5
+      flex flex-col transition-transform transform border-l text-white"
+    [style.backgroundColor]="'var(--color-background)'"
   [style.borderLeftColor]="'var(--color-secondary)'"
   [class.translate-x-full]="!(cart.open$ | async)"
   [class.translate-x-0]="cart.open$ | async"
@@ -35,15 +36,16 @@
   </div>
 
   <!-- Items -->
-  <div class="overflow-y-auto flex-1 pr-2 space-y-4">
+  <div class="cart-items-scroll flex-1 pr-2 space-y-4">
 
     <div *ngFor="let item of (cart.items$ | async)" class="flex gap-3">
 
       <!-- Imagen -->
       <img 
-        [src]="item.product.image" 
+        [src]="resolveProductImage(item.product.image)" 
         [alt]="item.product.name"
         loading="lazy"
+        (error)="onCartImageError($event)"
         class="w-16 h-16 rounded-lg object-cover shadow">
 
       <!-- Info -->
@@ -118,11 +120,38 @@
       <span>$ {{ (cart.total$ | async) || 0 | number }}</span>
     </div>
 
+    <!-- Campos de nombre y observación -->
+    <div class="flex flex-col gap-3 mb-4">
+      <label class="text-sm font-medium text-text" for="customerName">Nombre <span class="text-red-500">*</span></label>
+      <input
+        id="customerName"
+        type="text"
+        class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary text-text bg-background"
+        [(ngModel)]="customerName"
+        [class.border-red-500]="nameTouched && !customerName.trim()"
+        (blur)="nameTouched = true"
+        maxlength="40"
+        autocomplete="off"
+        required
+      />
+      <div *ngIf="nameTouched && !customerName.trim()" class="text-xs text-red-500">El nombre es obligatorio</div>
+
+      <label class="text-sm font-medium text-text" for="observation">Observación (opcional)</label>
+      <textarea
+        id="observation"
+        class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary text-text bg-background"
+        [(ngModel)]="observation"
+        maxlength="120"
+        rows="2"
+      ></textarea>
+    </div>
+
     <button 
       type="button"
       class="w-full bg-secondary text-text py-3 rounded-xl font-semibold 
                    hover:bg-secondary/90 transition"
       (click)="onCheckout()"
+      [disabled]="!customerName.trim()"
       aria-label="Proceder al pago">
       Proceder al pago
     </button>

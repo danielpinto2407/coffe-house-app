@@ -1,0 +1,5 @@
+/* Scroll solo en el área de productos, no en el modal completo */
+.cart-items-scroll {
+	max-height: 40vh;
+	overflow-y: auto;
+}

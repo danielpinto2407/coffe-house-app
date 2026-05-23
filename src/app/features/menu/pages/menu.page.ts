@@ -1,6 +1,6 @@
 import { Component, OnInit, signal, computed, inject, DestroyRef, ChangeDetectionStrategy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { ThemeService } from '../../../core/services/theme.service';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DOCUMENT } from '@angular/common';
 import { debounceTime, Subject, switchMap, tap, shareReplay } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ProductCardComponent } from '../../../shared/product-card/product-card.component';
@@ -20,6 +20,7 @@ import { environment } from '../../../../environments/environment';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MenuPage implements OnInit, AfterViewInit {
+  private readonly document = inject(DOCUMENT);
   private readonly themeService = inject(ThemeService);
   private readonly menuApi = inject(MenuApiService);
   private readonly productService = inject(ProductService);
@@ -118,13 +119,31 @@ export class MenuPage implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
+    this.syncHeaderOffset();
+    if (globalThis.window !== undefined) {
+      const onResize = () => this.syncHeaderOffset();
+      globalThis.window.addEventListener('resize', onResize, { passive: true });
+      this.destroyRef.onDestroy(() => globalThis.window.removeEventListener('resize', onResize));
+    }
+
     // ✅ Cargar menú completo inicial
     this.searchSubject.next('');
   }
 
   ngAfterViewInit(): void {
+    this.syncHeaderOffset();
     // ✅ Scroll automático cuando cambia la categoría seleccionada
     setTimeout(() => this.scrollToActivePill(), 0);
+  }
+
+  private syncHeaderOffset(): void {
+    if (globalThis.window === undefined) {
+      return;
+    }
+
+    const header = this.document.querySelector('app-header > header') as HTMLElement | null;
+    const headerHeight = header?.offsetHeight ?? 0;
+    this.document.documentElement.style.setProperty('--menu-header-offset', `${headerHeight}px`);
   }
 
   onSelectCategory(categoryId: number): void {

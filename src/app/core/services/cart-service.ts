@@ -5,7 +5,13 @@ import { map } from 'rxjs/operators';
 import { CartItem } from '../../features/menu/models/cart-item.model';
 import { Product } from '../../features/menu/models/product.model';
 
+
 const STORAGE_KEY = 'app_cart_v1';
+
+// Vacía el carrito en cada recarga de página
+if (globalThis.window !== undefined && globalThis.window.sessionStorage) {
+  globalThis.window.sessionStorage.removeItem(STORAGE_KEY);
+}
 
 @Injectable({ providedIn: 'root' })
 export class CartService {
