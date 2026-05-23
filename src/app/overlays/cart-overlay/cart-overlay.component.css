@@ -1,8 +1,9 @@
 /* Contraste para inputs del formulario del carrito */
+
 .cart-overlay-form-label,
 .cart-overlay-form-input,
 .cart-overlay-form-textarea {
-	color: var(--color-text) !important;
+	color: var(--color-secondary) !important;
 	background: var(--color-background) !important;
 }
 
